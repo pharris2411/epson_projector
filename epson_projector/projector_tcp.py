@@ -16,6 +16,7 @@ from .const import (
     POWER,
     SERIAL_BYTE,
     TCP_SERIAL_PORT,
+    EPSON_KEY_COMMANDS
 )
 from .timeout import get_timeout
 
@@ -85,7 +86,10 @@ class ProjectorTcp:
 
     async def send_command(self, command, timeout):
         """Send command to Epson."""
-        response = await self.send_request(timeout=timeout, command=command + CR)
+        formatted_command = ' '.join( ' '.join(x) for x in EPSON_KEY_COMMANDS[command])
+
+        _LOGGER.debug(f"Prepping command {formatted_command}")
+        response = await self.send_request(timeout=timeout, command=formatted_command + CR)
         return response
 
     async def send_request(self, timeout, command, bytes_to_read=16):
@@ -93,6 +97,7 @@ class ProjectorTcp:
         if self._isOpen is False:
             await self.async_init()
         if self._isOpen and command:
+            _LOGGER.debug(f"Sending command {command}")
             bytes_to_read = bytes_to_read if bytes_to_read else 16
             with async_timeout.timeout(timeout):
                 self._writer.write(command.encode())

@@ -108,6 +108,7 @@ EPSON_KEY_COMMANDS = {
     "IMGPROC_FAST": [("IMGPROC", "02")],
     "LUMINANCE_ECO": [("LUMINANCE", "01")],
     "LUMINANCE_NORMAL": [("LUMINANCE", "00")],
+
     "MEMORY_1": [("POPMEM", "02 01")],
     "MEMORY_2": [("POPMEM", "02 02")],
     "MEMORY_3": [("POPMEM", "02 03")],
@@ -118,6 +119,47 @@ EPSON_KEY_COMMANDS = {
     "MEMORY_8": [("POPMEM", "02 08")],
     "MEMORY_9": [("POPMEM", "02 09")],
     "MEMORY_10": [("POPMEM", "02 0A")],
+
+
+    "LENS_MEMORY_1": [("POPLP", "01")],
+    "LENS_MEMORY_2": [("POPLP", "02")],
+    "LENS_MEMORY_3": [("POPLP", "03")],
+    "LENS_MEMORY_4": [("POPLP", "04")],
+    "LENS_MEMORY_5": [("POPLP", "05")],
+    "LENS_MEMORY_6": [("POPLP", "06")],
+    "LENS_MEMORY_7": [("POPLP", "07")],
+    "LENS_MEMORY_8": [("POPLP", "08")],
+    "LENS_MEMORY_9": [("POPLP", "09")],
+    "LENS_MEMORY_10": [("POPLP", "0A")],
+
+    "LASER_LEVEL_50":  [('LUMLEVEL', '0')],
+    "LASER_LEVEL_55":  [('LUMLEVEL', '25')],
+    "LASER_LEVEL_60":  [('LUMLEVEL', '50')],
+    "LASER_LEVEL_65":  [('LUMLEVEL', '75')],
+    "LASER_LEVEL_70":  [('LUMLEVEL', '100')],
+    "LASER_LEVEL_75":  [('LUMLEVEL', '125')],
+    "LASER_LEVEL_80":  [('LUMLEVEL', '150')],
+    "LASER_LEVEL_85":  [('LUMLEVEL', '175')],
+    "LASER_LEVEL_90":  [('LUMLEVEL', '200')],
+    "LASER_LEVEL_95":  [('LUMLEVEL', '225')],
+    "LASER_LEVEL_100": [('LUMLEVEL', '250')],
+    
+    "COLOR_SPACE_AUTO" : [('CLRSPACE', '00')],
+    "COLOR_SPACE_BT709" : [('CLRSPACE', '01')],
+    "COLOR_SPACE_BT2020" : [('CLRSPACE', '02')],
+
+    "HDR_DYNAMIC_RANGE_AUTO":  [('DYNRANGE', '00')],
+    "HDR_DYNAMIC_RANGE_SDR":   [('DYNRANGE', '01')],
+    "HDR_DYNAMIC_RANGE_HDR10": [('DYNRANGE', '21')],
+    "HDR_DYNAMIC_RANGE_HLG":   [('DYNRANGE', '30')],
+}
+
+EPSON_CONFIG_RANGES = {
+    # Internal API name: [ 'Epson API parameter', set of acceptable values ]
+    'HDR_RANGE': ['HDRPQ', range(1, 16)],
+    'SCENE_ADAPTIVE_GAMMA': ['SCENEGAMMA', range(1, 20)],
+    'HIGH_RESOLUTION_FINE_LINE_ADJUSTMENT': ['SHRF', range(1, 20)],
+    'HIGH_RESOLUTION_SOFT_FOCUS_DETAIL': ['SHRS', range(1, 20)],
 }
 
 DEFAULT_TIMEOUT_TIME = 3
