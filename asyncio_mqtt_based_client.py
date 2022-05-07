@@ -5,13 +5,7 @@ from asyncio_mqtt import Client, MqttError
 
 import epson_projector as epson
 from epson_projector.const import (
-    POWER, 
-    PWR_OFF, 
-    VOLUME, 
-    LUMINANCE, 
-    CMODE, 
     EPSON_KEY_COMMANDS, 
-    IMGPROC_FINE, 
     PWR_OFF_STATE,
     EPSON_CONFIG_RANGES
 )
@@ -22,22 +16,18 @@ EPSON_IP = '192.168.1.30'
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
-        # Keep track of the asyncio tasks that we create, so that
-        # we can cancel them on exit
         tasks = set()
         stack.push_async_callback(cancel_tasks, tasks)
 
-        # Connect to the MQTT broker
         client = Client(MQTT_HOST)
         await stack.enter_async_context(client)
 
         projector = epson.Projector(host=EPSON_IP, type='tcp')
-        # await stack.enter_async_context(projector)
 
-        # You can create any number of topic filters
         topic_filters = (
             f"{BASE_TOPIC}/command/#"
         )
+
         for topic_filter in topic_filters:
             # Log all messages that matches the filter
             manager = client.filtered_messages(topic_filter)
@@ -81,8 +71,6 @@ async def get_all_config_values(client, projector):
         value = await projector.read_config_value(key_name)
 
         await client.publish(f"{BASE_TOPIC}/state/{key_name}", int(value))
-
-# async def get_lens_position(client, projector):
 
 async def process_commands(messages, projector):
     async for message in messages:
