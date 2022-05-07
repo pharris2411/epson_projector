@@ -93,6 +93,7 @@ EPSON_KEY_COMMANDS = {
     "CMODE_THEATRE": [("CMODE", "05")],
     "CMODE_THEATREBLACK": [("CMODE", "09")],
     "CMODE_THEATREBLACK2": [("CMODE", "0A")],
+    "CMODE_VIVID": [("CMODE", "23")],
     "VOL_UP": [("KEY", "56")],
     "VOL_DOWN": [("KEY", "57")],
     "MUTE": [("KEY", "D8")],
@@ -172,6 +173,17 @@ EPSON_CONFIG_RANGES = {
         'valid_range': range(0,251),
         'value_translator': '50-100',
     },
+    'BRIGHTNESS': {
+        'epson_code': 'BRIGHT',
+        'valid_range': range(0,256),
+        'value_translator': '100',
+    },
+    'CONTRAST': {
+        'epson_code': 'CONTRAST',
+        'valid_range': range(0,256),
+        'value_translator': '100',
+    },
+
 }
 
 DEFAULT_TIMEOUT_TIME = 30
@@ -212,6 +224,7 @@ CMODE_LIST = {
     "20": "B&W Cinema",
     "21": "Adobe RGB",
     "22": "Digital Cinema",
+    "23": "Vivid",
     "13": "THX",
     "0D": "Game",
     "16": "Stage",
@@ -259,6 +272,7 @@ CMODE_LIST_SET = {
     "Theatre": "CMODE_THEATRE",
     "theatre black": "CMODE_THEATREBLACK",
     "theatre black 2": "CMODE_THEATREBLACK2",
+    "Vivid": "CMODE_VIVID",
 }
 
 

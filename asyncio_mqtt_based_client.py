@@ -63,7 +63,6 @@ async def poll_projector_status(client, projector):
             
             await get_all_config_values(client, projector)
 
-
         await asyncio.sleep(10)
 
 async def get_all_config_values(client, projector):
