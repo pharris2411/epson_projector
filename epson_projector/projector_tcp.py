@@ -22,6 +22,15 @@ from .timeout import get_timeout
 
 _LOGGER = logging.getLogger(__name__)
 
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(   
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+_LOGGER.addHandler(console_handler)
+_LOGGER.setLevel(logging.DEBUG)
+
+# logging.basicConfig(level=logging.DEBUG)
+
 
 class ProjectorTcp:
     """
@@ -90,9 +99,9 @@ class ProjectorTcp:
 
         _LOGGER.debug(f"Prepping command {formatted_command}")
 
-        if command == "PWR OFF":
-            # need to send it twice...
-            await self.send_request(timeout=timeout, command=formatted_command)
+        # if command == "PWR OFF":
+        #     # need to send it twice...
+        #     await self.send_request(timeout=timeout, command=formatted_command)
 
         response = await self.send_request(timeout=timeout, command=formatted_command)
         return response

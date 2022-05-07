@@ -11,12 +11,12 @@ _LOGGER = logging.getLogger(__name__)
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.Formatter("%(asctime)s - %(name)s     - %(levelname)s - %(message)s")
 )
 _LOGGER.addHandler(console_handler)
 _LOGGER.setLevel(logging.DEBUG)
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class Projector:
@@ -77,7 +77,7 @@ class Projector:
         if value_translator_setting == '50-100':
             return int((int(value) - 50) / 5) * 25
 
-        return value
+        return int(value)
 
     def translate_value_from_epson(self, value, value_translator_setting):
         if value_translator_setting == '50-100':
@@ -104,14 +104,17 @@ class Projector:
         _LOGGER.debug("Getting property %s", command)
         timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
         if self._lock.checkLock():
-            return BUSY
+            raise Exception("Cannot fetch value as connection is locked")
+
         return await self._projector.get_property(command=command, timeout=timeout)
 
     async def send_command(self, command):
         """Send command to Epson."""
         _LOGGER.debug("Sending command to projector %s", command)
+
         if self._lock.checkLock():
-            return False
+            raise Exception("Projector is busy!")
+
         self._lock.setLock(command)
         return await self._projector.send_command(
             command, get_timeout(command, self._timeout_scale)
@@ -120,7 +123,7 @@ class Projector:
     async def read_config_value(self, config, timeout=None):
         """Read a config value from Epson."""
         if config not in EPSON_CONFIG_RANGES:
-            return False
+            raise Exception(f"Error!!! Trying to read {config} is not accepted!")
         
         command = EPSON_CONFIG_RANGES[config]['epson_code']
         value_translator_setting = EPSON_CONFIG_RANGES[config]['value_translator']
@@ -129,7 +132,8 @@ class Projector:
 
         timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
         if self._lock.checkLock():
-            return BUSY
+            raise Exception("Cannot fetch value as connection is locked")
+
         value = await self._projector.get_property(command=command, timeout=timeout)
 
         return self.translate_value_from_epson(value, value_translator_setting)
@@ -138,8 +142,8 @@ class Projector:
     async def send_config_value(self, config, value):
         """Send a config value to Epson."""
         if config not in EPSON_CONFIG_RANGES:
-            return False
-        
+            raise Exception(f"Error!!! Trying to set {config} is not accepted!")
+            
         base_comand = EPSON_CONFIG_RANGES[config]['epson_code']
         possible_range = EPSON_CONFIG_RANGES[config]['valid_range']
         value_translator_setting = EPSON_CONFIG_RANGES[config]['value_translator']
@@ -147,23 +151,22 @@ class Projector:
         value = self.translate_value_to_epson(value, value_translator_setting)
 
         if value not in possible_range:
-            return False
-
+            raise Exception(f"Error!!! Translated value {value} is not accepted in possible range for {config}!")
+            
         command = f"{base_comand} {value}"
 
         _LOGGER.debug("Sending config value to projector %s", command)
         if self._lock.checkLock():
-            return False
-        self._lock.setLock(command)
+            raise Exception("Projector is busy!")
+
+        # self._lock.setLock(command)
         return await self._projector.send_request(
             command=command, 
             timeout=get_timeout(command, self._timeout_scale)
         )
 
     async def send_request(self, command):
-        """Get property state from device."""
-        _LOGGER.debug("Getting property %s", command)
         if self._lock.checkLock():
-            return BUSY
+            raise Exception("Projector is busy!")
+
         return await self._projector.send_request(params=command, timeout=10)
-        

@@ -67,8 +67,8 @@ LASER_LEVEL = "LUMLEVEL"
 EPSON_CODES = {"PWR": "01"}
 
 EPSON_KEY_COMMANDS = {
-    "PWR ON": [("KEY", "3B")],
-    "PWR OFF": [("KEY", "3B")],
+    "PWR ON": [("PWR", "ON")],
+    "PWR OFF": [("PWR", "OFF")],
     "HDMILINK": [("jsoncallback", "HDMILINK?")],
     "PWR": [("jsoncallback", "PWR?")],
     "SOURCE": [("jsoncallback", "SOURCE?")],
@@ -197,10 +197,10 @@ EPSON_CONFIG_RANGES = {
         'human_name': 'Contrast',
         'humanized_range': range(0,101),
     },
-
 }
 
-DEFAULT_TIMEOUT_TIME = 30
+
+DEFAULT_TIMEOUT_TIME = 1
 TIMEOUT_TIMES = {"PWR ON": 40, "PWR OFF": 10, "SOURCE": 5, "ALL": 1}
 
 DEFAULT_SOURCES = {

@@ -30,7 +30,7 @@ async def epson_projector_bridge():
 
         manager = client.filtered_messages(f"{BASE_TOPIC}/command/#")
         messages = await stack.enter_async_context(manager)
-        task = asyncio.create_task(process_commands(messages, projector))
+        task = asyncio.create_task(process_commands(messages, projector, client))
         tasks.add(task)
 
         # Subscribe to topic(s)
@@ -48,40 +48,56 @@ async def epson_projector_bridge():
 
 async def poll_projector_status(client, projector):
     while True:
-        powerStatus = await projector.get_power()
-        if powerStatus == PWR_OFF_STATE:
-            await client.publish(f"{BASE_TOPIC}/state/power", "OFF")
-        else:
-            await client.publish(f"{BASE_TOPIC}/state/power", "ON")
+        try:
+            powerStatus = await projector.get_power()
+            if powerStatus == PWR_OFF_STATE:
+                await client.publish(f"{BASE_TOPIC}/state/power", "OFF")
+            else:
+                await client.publish(f"{BASE_TOPIC}/state/power", "ON")
+                
+                await get_all_config_values(client, projector)
+        except Exception as inst:
+            print(f"---- Exception thrown: {inst}")
             
-            await get_all_config_values(client, projector)
-
         await asyncio.sleep(10)
 
 async def get_all_config_values(client, projector):
     for key_name in EPSON_CONFIG_RANGES:
-        value = await projector.read_config_value(key_name)
+        try:
+            value = await projector.read_config_value(key_name)
+        
+            await client.publish(f"{BASE_TOPIC}/state/{key_name}", int(value))
+        except Exception as inst:
+            print(f"---- Exception thrown: {inst}")
 
-        await client.publish(f"{BASE_TOPIC}/state/{key_name}", int(value))
-
-async def process_commands(messages, projector):
+async def process_commands(messages, projector, client):
     async for message in messages:
         # 🤔 Note that we assume that the message paylod is an
         # UTF8-encoded string (hence the `bytes.decode` call).
         command = message.topic[len(f"{BASE_TOPIC}/command/"):]
         value = message.payload.decode()
         
-        if command in EPSON_CONFIG_RANGES:
-            await projector.send_config_value(command, value)
-        elif command in EPSON_KEY_COMMANDS:
-            await projector.send_command(command)
-        elif command == "power":
-            if value == 'OFF':
-                await projector.send_command("PWR OFF")
+        print("")
+        print(f'-------------- Executing command {command} with {value}')
+        try:
+            if command in EPSON_CONFIG_RANGES:
+                await projector.send_config_value(command, value)
+                
+                # new_value = await projector.read_config_value(command)
+                # await client.publish(f"{BASE_TOPIC}/state/{command}", int(new_value))
+
+            elif command in EPSON_KEY_COMMANDS:
+                await projector.send_command(command)
+            elif command == "power":
+                if value == 'OFF':
+                    await projector.send_command("PWR OFF")
+                else:
+                    await projector.send_command("PWR ON")
             else:
-                await projector.send_command("PWR ON")
-        else:
-            print(f"Unknown command {command}")
+                print(f"Unknown command {command}")
+        except Exception as inst:
+            print(f"---- Exception thrown: {inst}")
+        print("")
 
 async def publish_homeassistant_discovery_config(projector, client):
     
