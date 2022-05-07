@@ -151,37 +151,51 @@ EPSON_CONFIG_RANGES = {
     'HDR_RANGE': {
         'epson_code': 'HDRPQ', 
         'valid_range': range(1, 17),
-        'value_translator': None
+        'value_translator': None,
+        'human_name': 'HDR Range',
+        'humanized_range': range(1, 17),
     },
     'SCENE_ADAPTIVE_GAMMA': {
         'epson_code': 'SCENEGAMMA',
         'valid_range': range(0, 21),
         'value_translator': '21',
+        'human_name': 'Scene Adaptive Gamma',
+        'humanized_range': range(0, 21),
     },
     'HIGH_RESOLUTION_FINE_LINE_ADJUSTMENT': {
         'epson_code': 'SHRF',
         'valid_range': range(0, 21),
         'value_translator': '21',
+        'human_name': 'High Resolution Fine Line Adjustment',
+        'humanized_range': range(0, 21),
     },
     'HIGH_RESOLUTION_SOFT_FOCUS_DETAIL': {
         'epson_code': 'SHRS',
         'valid_range': range(0, 21),
         'value_translator': '21',
+        'human_name': 'High Resolution Soft Focus Detail',
+        'humanized_range': range(0, 21),
     },
     'LASER_LEVEL': {
         'epson_code': 'LUMLEVEL',
         'valid_range': range(0,251),
         'value_translator': '50-100',
+        'human_name': 'Laser Level',
+        'humanized_range': range(50,101),
     },
     'BRIGHTNESS': {
         'epson_code': 'BRIGHT',
         'valid_range': range(0,256),
         'value_translator': '100',
+        'human_name': 'Brightness',
+        'humanized_range': range(0,101),
     },
     'CONTRAST': {
         'epson_code': 'CONTRAST',
         'valid_range': range(0,256),
         'value_translator': '100',
+        'human_name': 'Contrast',
+        'humanized_range': range(0,101),
     },
 
 }

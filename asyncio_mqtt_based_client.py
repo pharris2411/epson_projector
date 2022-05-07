@@ -2,6 +2,7 @@ import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 from random import randrange
 from asyncio_mqtt import Client, MqttError
+import json
 
 import epson_projector as epson
 from epson_projector.const import (
@@ -13,6 +14,7 @@ from epson_projector.const import (
 BASE_TOPIC = 'epson'
 MQTT_HOST = '192.168.1.98'
 EPSON_IP = '192.168.1.30'
+EPSON_UNIQUE_IDENTIFIER = f'EPSON_AT_{EPSON_IP}'
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
@@ -23,6 +25,8 @@ async def epson_projector_bridge():
         await stack.enter_async_context(client)
 
         projector = epson.Projector(host=EPSON_IP, type='tcp')
+
+        await publish_homeassistant_discovery_config(projector, client)
 
         manager = client.filtered_messages(f"{BASE_TOPIC}/command/#")
         messages = await stack.enter_async_context(manager)
@@ -78,7 +82,58 @@ async def process_commands(messages, projector):
                 await projector.send_command("PWR ON")
         else:
             print(f"Unknown command {command}")
-        
+
+async def publish_homeassistant_discovery_config(projector, client):
+    
+    await client.publish(f"homeassistant/switch/{BASE_TOPIC}/power/config", 
+        json.dumps({
+            "name": "Epson Projector Power",
+            "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_pwr",
+            "command_topic": f"{BASE_TOPIC}/command/power", 
+            "state_topic": f"{BASE_TOPIC}/state/power"
+        })
+    )
+
+    for key_name, config in EPSON_CONFIG_RANGES.items():
+        await client.publish(f"homeassistant/number/{BASE_TOPIC}/{key_name.lower()}/config", 
+            json.dumps({
+                "name": f"Epson Projector {config['human_name']}", 
+                "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_{key_name.lower()}",
+                "command_topic": f"{BASE_TOPIC}/command/{key_name}", 
+                "state_topic": f"{BASE_TOPIC}/state/{key_name}",
+                "min": min(config['humanized_range']),
+                "max": max(config['humanized_range']),
+                "step": (1,5)[config['value_translator'] == '50-100'],
+                "unit_of_measurement": ('','%')[config['value_translator'] == '50-100'],
+                "availability_topic": f"{BASE_TOPIC}/state/power",
+                "payload_available": "ON",
+                "payload_not_available": "OFF",
+            })
+        )
+    
+    for i in range(1,11):
+        await client.publish(f"homeassistant/button/{BASE_TOPIC}/lens_memory_{i}/config", 
+            json.dumps({
+                "name": f"Epson Projector Load Lens Memory #{i}", 
+                "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_lens_memory_{i}",
+                "command_topic": f"{BASE_TOPIC}/command/LENS_MEMORY_{i}",
+                "availability_topic": f"{BASE_TOPIC}/state/power",
+                "payload_available": "ON",
+                "payload_not_available": "OFF",
+            })
+        )
+
+        await client.publish(f"homeassistant/button/{BASE_TOPIC}/image_memory_{i}/config", 
+            json.dumps({
+                "name": f"Epson Projector Load Image Memory #{i}", 
+                "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_image_memory_{i}",
+                "command_topic": f"{BASE_TOPIC}/command/MEMORY_{i}", 
+                "availability_topic": f"{BASE_TOPIC}/state/power",
+                "payload_available": "ON",
+                "payload_not_available": "OFF",
+            })
+        )
+
 
 async def cancel_tasks(tasks):
     for task in tasks:
