@@ -24,21 +24,10 @@ async def epson_projector_bridge():
 
         projector = epson.Projector(host=EPSON_IP, type='tcp')
 
-        topic_filters = (
-            f"{BASE_TOPIC}/command/#"
-        )
-
-        for topic_filter in topic_filters:
-            # Log all messages that matches the filter
-            manager = client.filtered_messages(topic_filter)
-            messages = await stack.enter_async_context(manager)
-            task = asyncio.create_task(process_commands(messages, projector))
-            tasks.add(task)
-
-        # Messages that doesn't match a filter will get logged here
-        # messages = await stack.enter_async_context(client.unfiltered_messages())
-        # task = asyncio.create_task(process_commands(messages, "[unfiltered] {}"))
-        # tasks.add(task)
+        manager = client.filtered_messages(f"{BASE_TOPIC}/command/#")
+        messages = await stack.enter_async_context(manager)
+        task = asyncio.create_task(process_commands(messages, projector))
+        tasks.add(task)
 
         # Subscribe to topic(s)
         # 🤔 Note that we subscribe *after* starting the message
