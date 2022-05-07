@@ -83,15 +83,15 @@ class ProjectorTcp:
         )
         _LOGGER.debug("Response is %s", response)
         if not response:
-            return False
+            raise Exception("No response!")
         try:
             resp_beginning = f"{command}="
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
-                return False
+                raise Exception("No response!")
             return response[index_of_response:].replace(resp_beginning, "")
         except KeyError:
-            return BUSY
+            raise Exception("Error fetching!")
 
     async def send_command(self, command, timeout):
         """Send command to Epson."""
@@ -121,7 +121,7 @@ class ProjectorTcp:
                 response = await self._reader.read(bytes_to_read)
                 response = response.decode().replace(CR_COLON, "")
                 if response == ERROR:
-                    return False
+                    raise Exception("No response!")
                 return response
 
     async def get_serial(self):
