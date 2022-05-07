@@ -89,18 +89,26 @@ class ProjectorTcp:
         formatted_command = ' '.join( ' '.join(x) for x in EPSON_KEY_COMMANDS[command])
 
         _LOGGER.debug(f"Prepping command {formatted_command}")
-        response = await self.send_request(timeout=timeout, command=formatted_command + CR)
+
+        if command == "PWR OFF":
+            # need to send it twice...
+            await self.send_request(timeout=timeout, command=formatted_command)
+
+        response = await self.send_request(timeout=timeout, command=formatted_command)
         return response
+
 
     async def send_request(self, timeout, command, bytes_to_read=16):
         """Send TCP request to Epson."""
+        formatted_command = command + CR
+
         if self._isOpen is False:
             await self.async_init()
-        if self._isOpen and command:
-            _LOGGER.debug(f"Sending command {command}")
+        if self._isOpen and formatted_command:
+            _LOGGER.debug(f"Sending command {formatted_command}")
             bytes_to_read = bytes_to_read if bytes_to_read else 16
             with async_timeout.timeout(timeout):
-                self._writer.write(command.encode())
+                self._writer.write(formatted_command.encode())
                 response = await self._reader.read(bytes_to_read)
                 response = response.decode().replace(CR_COLON, "")
                 if response == ERROR:

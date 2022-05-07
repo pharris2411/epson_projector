@@ -1,12 +1,22 @@
 """Main of Epson projector module."""
-import logging
-
-from .const import BUSY, TCP_PORT, HTTP_PORT, POWER, HTTP, TCP, SERIAL
+from .const import BUSY, TCP_PORT, HTTP_PORT, POWER, HTTP, TCP, SERIAL, EPSON_CONFIG_RANGES
 from .timeout import get_timeout
 
 from .lock import Lock
 
+import logging
+
+
 _LOGGER = logging.getLogger(__name__)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+_LOGGER.addHandler(console_handler)
+_LOGGER.setLevel(logging.DEBUG)
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Projector:
@@ -59,6 +69,24 @@ class Projector:
 
     def set_timeout_scale(self, timeout_scale=1.0):
         self._timeout_scale = timeout_scale
+    
+    def translate_value_to_epson(self, value, value_translator_setting):
+        if value_translator_setting == '21':
+            return int(value * 256/21)
+        
+        if value_translator_setting == '50-100':
+            return int((int(value) - 50) / 5) * 25
+
+        return value
+
+    def translate_value_from_epson(self, value, value_translator_setting):
+        if value_translator_setting == '50-100':
+            return int(int(value) / 25 * 5 + 50)
+        
+        if value_translator_setting == '21':
+            return round(int(value) * 21/256)
+
+        return value
 
     async def get_serial_number(self):
         return await self._projector.get_serial()
@@ -89,9 +117,53 @@ class Projector:
             command, get_timeout(command, self._timeout_scale)
         )
 
+    async def read_config_value(self, config, timeout=None):
+        """Read a config value from Epson."""
+        if config not in EPSON_CONFIG_RANGES:
+            return False
+        
+        command = EPSON_CONFIG_RANGES[config]['epson_code']
+        value_translator_setting = EPSON_CONFIG_RANGES[config]['value_translator']
+
+        _LOGGER.debug("Getting property %s", command)
+
+        timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
+        if self._lock.checkLock():
+            return BUSY
+        value = await self._projector.get_property(command=command, timeout=timeout)
+
+        return self.translate_value_from_epson(value, value_translator_setting)
+        
+
+    async def send_config_value(self, config, value):
+        """Send a config value to Epson."""
+        if config not in EPSON_CONFIG_RANGES:
+            return False
+        
+        base_comand = EPSON_CONFIG_RANGES[config]['epson_code']
+        possible_range = EPSON_CONFIG_RANGES[config]['valid_range']
+        value_translator_setting = EPSON_CONFIG_RANGES[config]['value_translator']
+
+        value = self.translate_value_to_epson(value, value_translator_setting)
+
+        if value not in possible_range:
+            return False
+
+        command = f"{base_comand} {value}"
+
+        _LOGGER.debug("Sending config value to projector %s", command)
+        if self._lock.checkLock():
+            return False
+        self._lock.setLock(command)
+        return await self._projector.send_request(
+            command=command, 
+            timeout=get_timeout(command, self._timeout_scale)
+        )
+
     async def send_request(self, command):
         """Get property state from device."""
         _LOGGER.debug("Getting property %s", command)
         if self._lock.checkLock():
             return BUSY
         return await self._projector.send_request(params=command, timeout=10)
+        

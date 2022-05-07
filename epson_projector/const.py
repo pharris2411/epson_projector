@@ -21,6 +21,7 @@ ESCVPNET_HELLO_COMMAND = "ESC/VP.net\x10\x03\x00\x00\x00\x00"
 ESCVPNETNAME = "ESC/VP.net"
 ESCVPNAME = "ESC/VP"
 ERROR = "ERR"
+PWR_ON_STATE = "01"
 PWR_OFF_STATE = "04"
 ESCVP_HELLO_COMMAND = "\r"
 COLON = ":"
@@ -60,11 +61,14 @@ MEMORY_10 = "MEMORY_10"
 SNO = "SNO"
 BUSY = 2
 
+LENS_MEMORY = "POPLP"
+LASER_LEVEL = "LUMLEVEL"
+
 EPSON_CODES = {"PWR": "01"}
 
 EPSON_KEY_COMMANDS = {
     "PWR ON": [("KEY", "3B")],
-    "PWR OFF": [("KEY", "3B"), ("KEY", "3B")],
+    "PWR OFF": [("KEY", "3B")],
     "HDMILINK": [("jsoncallback", "HDMILINK?")],
     "PWR": [("jsoncallback", "PWR?")],
     "SOURCE": [("jsoncallback", "SOURCE?")],
@@ -131,18 +135,6 @@ EPSON_KEY_COMMANDS = {
     "LENS_MEMORY_8": [("POPLP", "08")],
     "LENS_MEMORY_9": [("POPLP", "09")],
     "LENS_MEMORY_10": [("POPLP", "0A")],
-
-    "LASER_LEVEL_50":  [('LUMLEVEL', '0')],
-    "LASER_LEVEL_55":  [('LUMLEVEL', '25')],
-    "LASER_LEVEL_60":  [('LUMLEVEL', '50')],
-    "LASER_LEVEL_65":  [('LUMLEVEL', '75')],
-    "LASER_LEVEL_70":  [('LUMLEVEL', '100')],
-    "LASER_LEVEL_75":  [('LUMLEVEL', '125')],
-    "LASER_LEVEL_80":  [('LUMLEVEL', '150')],
-    "LASER_LEVEL_85":  [('LUMLEVEL', '175')],
-    "LASER_LEVEL_90":  [('LUMLEVEL', '200')],
-    "LASER_LEVEL_95":  [('LUMLEVEL', '225')],
-    "LASER_LEVEL_100": [('LUMLEVEL', '250')],
     
     "COLOR_SPACE_AUTO" : [('CLRSPACE', '00')],
     "COLOR_SPACE_BT709" : [('CLRSPACE', '01')],
@@ -155,15 +147,35 @@ EPSON_KEY_COMMANDS = {
 }
 
 EPSON_CONFIG_RANGES = {
-    # Internal API name: [ 'Epson API parameter', set of acceptable values ]
-    'HDR_RANGE': ['HDRPQ', range(1, 16)],
-    'SCENE_ADAPTIVE_GAMMA': ['SCENEGAMMA', range(1, 20)],
-    'HIGH_RESOLUTION_FINE_LINE_ADJUSTMENT': ['SHRF', range(1, 20)],
-    'HIGH_RESOLUTION_SOFT_FOCUS_DETAIL': ['SHRS', range(1, 20)],
+    'HDR_RANGE': {
+        'epson_code': 'HDRPQ', 
+        'valid_range': range(1, 17),
+        'value_translator': None
+    },
+    'SCENE_ADAPTIVE_GAMMA': {
+        'epson_code': 'SCENEGAMMA',
+        'valid_range': range(0, 21),
+        'value_translator': '21',
+    },
+    'HIGH_RESOLUTION_FINE_LINE_ADJUSTMENT': {
+        'epson_code': 'SHRF',
+        'valid_range': range(0, 21),
+        'value_translator': '21',
+    },
+    'HIGH_RESOLUTION_SOFT_FOCUS_DETAIL': {
+        'epson_code': 'SHRS',
+        'valid_range': range(0, 21),
+        'value_translator': '21',
+    },
+    'LASER_LEVEL': {
+        'epson_code': 'LUMLEVEL',
+        'valid_range': range(0,251),
+        'value_translator': '50-100',
+    },
 }
 
-DEFAULT_TIMEOUT_TIME = 3
-TIMEOUT_TIMES = {"PWR ON": 40, "PWR OFF": 10, "SOURCE": 5}
+DEFAULT_TIMEOUT_TIME = 30
+TIMEOUT_TIMES = {"PWR ON": 40, "PWR OFF": 10, "SOURCE": 5, "ALL": 1}
 
 DEFAULT_SOURCES = {
     "HDMI1": "HDMI1",
