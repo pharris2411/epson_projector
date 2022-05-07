@@ -47,6 +47,7 @@ PWR_OFF = "PWR OFF"
 ALL = "ALL"
 IMGPROC_FINE = "IMGPROC_FINE"
 IMGPROC_FAST = "IMGPROC_FAST"
+IMGPROC = "IMGPROC"
 LUMINANCE = "LUMINANCE"
 MEMORY_1 = "MEMORY_1"
 MEMORY_2 = "MEMORY_2"
@@ -69,11 +70,11 @@ EPSON_CODES = {"PWR": "01"}
 EPSON_KEY_COMMANDS = {
     "PWR ON": [("PWR", "ON")],
     "PWR OFF": [("PWR", "OFF")],
-    "HDMILINK": [("jsoncallback", "HDMILINK?")],
-    "PWR": [("jsoncallback", "PWR?")],
-    "SOURCE": [("jsoncallback", "SOURCE?")],
-    "CMODE": [("jsoncallback", "CMODE?")],
-    "VOLUME": [("jsoncallback", "VOL?")],
+    # "HDMILINK": [("jsoncallback", "HDMILINK?")],
+    # "PWR": [("jsoncallback", "PWR?")],
+    # "SOURCE": [("jsoncallback", "SOURCE?")],
+    # "CMODE": [("jsoncallback", "CMODE?")],
+    # "VOLUME": [("jsoncallback", "VOL?")],
     "CMODE_AUTO": [("CMODE", "00")],
     "CMODE_CINEMA": [("CMODE", "15")],
     "CMODE_NATURAL": [("CMODE", "07")],
@@ -125,7 +126,6 @@ EPSON_KEY_COMMANDS = {
     "MEMORY_9": [("POPMEM", "02 09")],
     "MEMORY_10": [("POPMEM", "02 0A")],
 
-
     "LENS_MEMORY_1": [("POPLP", "01")],
     "LENS_MEMORY_2": [("POPLP", "02")],
     "LENS_MEMORY_3": [("POPLP", "03")],
@@ -157,21 +157,21 @@ EPSON_CONFIG_RANGES = {
     },
     'SCENE_ADAPTIVE_GAMMA': {
         'epson_code': 'SCENEGAMMA',
-        'valid_range': range(0, 21),
+        'valid_range': range(0, 256),
         'value_translator': '21',
         'human_name': 'Scene Adaptive Gamma',
         'humanized_range': range(0, 21),
     },
     'HIGH_RESOLUTION_FINE_LINE_ADJUSTMENT': {
         'epson_code': 'SHRF',
-        'valid_range': range(0, 21),
+        'valid_range': range(0, 256),
         'value_translator': '21',
         'human_name': 'High Resolution Fine Line Adjustment',
         'humanized_range': range(0, 21),
     },
     'HIGH_RESOLUTION_SOFT_FOCUS_DETAIL': {
         'epson_code': 'SHRS',
-        'valid_range': range(0, 21),
+        'valid_range': range(0, 256),
         'value_translator': '21',
         'human_name': 'High Resolution Soft Focus Detail',
         'humanized_range': range(0, 21),
@@ -197,6 +197,48 @@ EPSON_CONFIG_RANGES = {
         'human_name': 'Contrast',
         'humanized_range': range(0,101),
     },
+}
+
+EPSON_OPTIONS = {
+    'IMGPROC': {
+        'human_name': 'Image Processing',
+        'epson_command': 'IMGPROC',
+        'options': [
+            ("Fine", "IMGPROC_FINE", '01'),
+            ("Fast", "IMGPROC_FAST", '02')
+        ]
+    },
+    'COLOR_SPACE': {
+        'human_name': 'Color Space',
+        'epson_command': 'CLRSPACE',
+        'options': [
+            ("Auto", "COLOR_SPACE_AUTO", '00'),
+            ("BT.709", "COLOR_SPACE_BT709", '01'),
+            ("BT.2020", "COLOR_SPACE_BT2020", '02'),
+        ]
+    },
+    'HDR_DYNAMIC_RANGE': {
+        'human_name': 'HDR Dynamic Range',
+        'epson_command': 'DYNRANGE',
+        'options': [
+            ("Auto", "HDR_DYNAMIC_RANGE_AUTO", '00'),
+            ("SDR", "HDR_DYNAMIC_RANGE_SDR", '01'),
+            ("HDR10", "HDR_DYNAMIC_RANGE_HDR10", '21'),
+            ("HLG", "HDR_DYNAMIC_RANGE_HLG", '30'),
+        ]
+    },
+    'CMODE': {
+        'human_name': 'Color Mode',
+        'epson_command': 'CMODE',
+        'options': [
+            ("Dynamic", "CMODE_DYNAMIC", '06'),
+            ("Vivid", "CMODE_VIVID", '23'),
+            ("Bright Cinema", "CMODE_BRIGHT", '0C'),
+            ("Cinema", "CMODE_CINEMA", '15'),
+            ("Natural", "CMODE_NATURAL", '07'),            
+            ("B&W Cinema", "CMODE_BWCINEMA", '20'),
+        ]
+    }
 }
 
 

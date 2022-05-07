@@ -72,10 +72,13 @@ class Projector:
     
     def translate_value_to_epson(self, value, value_translator_setting):
         if value_translator_setting == '21':
-            return int(value * 256/21)
+            return int(int(value) * 256/21)
         
         if value_translator_setting == '50-100':
             return int((int(value) - 50) / 5) * 25
+
+        if value_translator_setting == '100':
+            return int(int(value) * 256/101)
 
         return int(value)
 
@@ -85,6 +88,9 @@ class Projector:
         
         if value_translator_setting == '21':
             return round(int(value) * 21/256)
+        
+        if value_translator_setting == '100':
+            return round(int(value) * 101/256)
 
         return value
 

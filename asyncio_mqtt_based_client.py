@@ -8,7 +8,8 @@ import epson_projector as epson
 from epson_projector.const import (
     EPSON_KEY_COMMANDS, 
     PWR_OFF_STATE,
-    EPSON_CONFIG_RANGES
+    EPSON_CONFIG_RANGES,
+    EPSON_OPTIONS
 )
 
 BASE_TOPIC = 'epson'
@@ -56,9 +57,11 @@ async def poll_projector_status(client, projector):
                 await client.publish(f"{BASE_TOPIC}/state/power", "ON")
                 
                 await get_all_config_values(client, projector)
+                await get_all_option_values(client, projector)
+
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
-            
+
         await asyncio.sleep(10)
 
 async def get_all_config_values(client, projector):
@@ -67,6 +70,18 @@ async def get_all_config_values(client, projector):
             value = await projector.read_config_value(key_name)
         
             await client.publish(f"{BASE_TOPIC}/state/{key_name}", int(value))
+        except Exception as inst:
+            print(f"---- Exception thrown: {inst}")
+
+async def get_all_option_values(client, projector):
+    for key_name, config in EPSON_OPTIONS.items():
+        try:
+            raw_value = await projector.get_property(config['epson_command'])
+            for option in config['options']:
+                if raw_value == option[2]:    
+                    await client.publish(f"{BASE_TOPIC}/state/{key_name}", option[0])
+                    break
+                
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
 
@@ -88,6 +103,11 @@ async def process_commands(messages, projector, client):
 
             elif command in EPSON_KEY_COMMANDS:
                 await projector.send_command(command)
+            elif command in EPSON_OPTIONS:
+                for option in EPSON_OPTIONS[command]['options']:
+                    if value == option[0]:
+                        await projector.send_command(option[1])
+                        break
             elif command == "power":
                 if value == 'OFF':
                     await projector.send_command("PWR OFF")
@@ -113,7 +133,7 @@ async def publish_homeassistant_discovery_config(projector, client):
     for key_name, config in EPSON_CONFIG_RANGES.items():
         await client.publish(f"homeassistant/number/{BASE_TOPIC}/{key_name.lower()}/config", 
             json.dumps({
-                "name": f"Epson Projector {config['human_name']}", 
+                "name": f"{config['human_name']}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_{key_name.lower()}",
                 "command_topic": f"{BASE_TOPIC}/command/{key_name}", 
                 "state_topic": f"{BASE_TOPIC}/state/{key_name}",
@@ -127,10 +147,26 @@ async def publish_homeassistant_discovery_config(projector, client):
             })
         )
     
+    for key_name, config in EPSON_OPTIONS.items():
+        await client.publish(f"homeassistant/select/{BASE_TOPIC}/{key_name.lower()}/config", 
+            json.dumps({
+                "name": f"{config['human_name']}", 
+                "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_{key_name.lower()}",
+                "command_topic": f"{BASE_TOPIC}/command/{key_name}", 
+                "state_topic": f"{BASE_TOPIC}/state/{key_name}",
+                "options": [
+                    x[0] for x in config['options']
+                ],
+                "availability_topic": f"{BASE_TOPIC}/state/power",
+                "payload_available": "ON",
+                "payload_not_available": "OFF",
+            })
+        )
+    
     for i in range(1,11):
         await client.publish(f"homeassistant/button/{BASE_TOPIC}/lens_memory_{i}/config", 
             json.dumps({
-                "name": f"Epson Projector Load Lens Memory #{i}", 
+                "name": f"Load Lens Memory #{i}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_lens_memory_{i}",
                 "command_topic": f"{BASE_TOPIC}/command/LENS_MEMORY_{i}",
                 "availability_topic": f"{BASE_TOPIC}/state/power",
@@ -141,7 +177,7 @@ async def publish_homeassistant_discovery_config(projector, client):
 
         await client.publish(f"homeassistant/button/{BASE_TOPIC}/image_memory_{i}/config", 
             json.dumps({
-                "name": f"Epson Projector Load Image Memory #{i}", 
+                "name": f"Load Image Memory #{i}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_image_memory_{i}",
                 "command_topic": f"{BASE_TOPIC}/command/MEMORY_{i}", 
                 "availability_topic": f"{BASE_TOPIC}/state/power",
@@ -149,6 +185,8 @@ async def publish_homeassistant_discovery_config(projector, client):
                 "payload_not_available": "OFF",
             })
         )
+
+        
 
 
 async def cancel_tasks(tasks):
