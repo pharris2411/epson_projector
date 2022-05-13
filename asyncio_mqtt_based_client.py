@@ -9,6 +9,7 @@ from epson_projector.const import (
     EPSON_KEY_COMMANDS, 
     EPSON_CONFIG_RANGES,
     EPSON_OPTIONS,
+    PWR_OFF_STATE,
     PWR_ON_STATE,
 )
 
@@ -51,12 +52,12 @@ async def poll_projector_status(client, projector):
     while True:
         try:
             powerStatus = await projector.get_power()
-            if powerStatus == PWR_ON_STATE:
+            if powerStatus == PWR_OFF_STATE:
+                await client.publish(f"{BASE_TOPIC}/state/power", "OFF")
+            else:
                 await client.publish(f"{BASE_TOPIC}/state/power", "ON")
                 await get_all_config_values(client, projector)
                 await get_all_option_values(client, projector)
-            else:
-                await client.publish(f"{BASE_TOPIC}/state/power", "OFF")
 
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
