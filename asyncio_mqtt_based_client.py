@@ -3,6 +3,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from random import randrange
 from asyncio_mqtt import Client, MqttError
 import json
+import logging
 
 import epson_projector as epson
 from epson_projector.const import (
@@ -17,6 +18,15 @@ BASE_TOPIC = 'epson'
 MQTT_HOST = '192.168.1.98'
 EPSON_IP = '192.168.1.30'
 EPSON_UNIQUE_IDENTIFIER = f'EPSON_AT_{EPSON_IP}'
+
+_LOGGER = logging.getLogger(__name__)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(   
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+_LOGGER.addHandler(console_handler)
+_LOGGER.setLevel(logging.DEBUG)
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
@@ -53,9 +63,9 @@ async def poll_projector_status(client, projector):
         try:
             powerStatus = await projector.get_power()
             if powerStatus == PWR_OFF_STATE:
-                await client.publish(f"{BASE_TOPIC}/state/power", "OFF")
+                await publish_message(client, f"{BASE_TOPIC}/state/power", "OFF")
             else:
-                await client.publish(f"{BASE_TOPIC}/state/power", "ON")
+                await publish_message(client, f"{BASE_TOPIC}/state/power", "ON")
                 await get_all_config_values(client, projector)
                 await get_all_option_values(client, projector)
 
@@ -69,7 +79,7 @@ async def get_all_config_values(client, projector):
         try:
             value = await projector.read_config_value(key_name)
         
-            await client.publish(f"{BASE_TOPIC}/state/{key_name}", int(value))
+            await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", int(value))
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
 
@@ -79,11 +89,15 @@ async def get_all_option_values(client, projector):
             raw_value = await projector.get_property(config['epson_command'])
             for option in config['options']:
                 if raw_value == option[2]:    
-                    await client.publish(f"{BASE_TOPIC}/state/{key_name}", option[0])
+                    await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", option[0])
                     break
                 
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
+
+async def publish_message(client, topic, message):
+    _LOGGER.debug(f"Publishing to MQTT: {topic} -- {message}\n")
+    await client.publish( f"{BASE_TOPIC}/state/power", "ON")
 
 async def process_commands(messages, projector, client):
     async for message in messages:
@@ -99,7 +113,7 @@ async def process_commands(messages, projector, client):
                 await projector.send_config_value(command, value)
                 
                 # new_value = await projector.read_config_value(command)
-                # await client.publish(f"{BASE_TOPIC}/state/{command}", int(new_value))
+                # await publish_message(client, f"{BASE_TOPIC}/state/{command}", int(new_value))
 
             elif command in EPSON_KEY_COMMANDS:
                 await projector.send_command(command)
@@ -121,7 +135,7 @@ async def process_commands(messages, projector, client):
 
 async def publish_homeassistant_discovery_config(projector, client):
     
-    await client.publish(f"homeassistant/switch/{BASE_TOPIC}/power/config", 
+    await publish_message(client, f"homeassistant/switch/{BASE_TOPIC}/power/config", 
         json.dumps({
             "name": "Epson Projector Power",
             "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_pwr",
@@ -131,7 +145,7 @@ async def publish_homeassistant_discovery_config(projector, client):
     )
 
     for key_name, config in EPSON_CONFIG_RANGES.items():
-        await client.publish(f"homeassistant/number/{BASE_TOPIC}/{key_name.lower()}/config", 
+        await publish_message(client, f"homeassistant/number/{BASE_TOPIC}/{key_name.lower()}/config", 
             json.dumps({
                 "name": f"{config['human_name']}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_{key_name.lower()}",
@@ -148,7 +162,7 @@ async def publish_homeassistant_discovery_config(projector, client):
         )
     
     for key_name, config in EPSON_OPTIONS.items():
-        await client.publish(f"homeassistant/select/{BASE_TOPIC}/{key_name.lower()}/config", 
+        await publish_message(client, f"homeassistant/select/{BASE_TOPIC}/{key_name.lower()}/config", 
             json.dumps({
                 "name": f"{config['human_name']}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_{key_name.lower()}",
@@ -164,7 +178,7 @@ async def publish_homeassistant_discovery_config(projector, client):
         )
     
     for i in range(1,11):
-        await client.publish(f"homeassistant/button/{BASE_TOPIC}/lens_memory_{i}/config", 
+        await publish_message(client, f"homeassistant/button/{BASE_TOPIC}/lens_memory_{i}/config", 
             json.dumps({
                 "name": f"Load Lens Memory #{i}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_lens_memory_{i}",
@@ -175,7 +189,7 @@ async def publish_homeassistant_discovery_config(projector, client):
             })
         )
 
-        await client.publish(f"homeassistant/button/{BASE_TOPIC}/image_memory_{i}/config", 
+        await publish_message(client, f"homeassistant/button/{BASE_TOPIC}/image_memory_{i}/config", 
             json.dumps({
                 "name": f"Load Image Memory #{i}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_image_memory_{i}",
