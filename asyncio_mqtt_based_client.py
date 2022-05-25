@@ -97,7 +97,7 @@ async def get_all_option_values(client, projector):
 
 async def publish_message(client, topic, message):
     _LOGGER.debug(f"Publishing to MQTT: {topic} -- {message}\n")
-    await client.publish( f"{BASE_TOPIC}/state/power", "ON")
+    await client.publish( topic, message)
 
 async def process_commands(messages, projector, client):
     async for message in messages:
