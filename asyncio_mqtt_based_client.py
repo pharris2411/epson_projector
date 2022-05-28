@@ -64,7 +64,10 @@ async def poll_projector_status(client, projector):
             powerStatus = await projector.get_power()
             if powerStatus == PWR_OFF_STATE:
                 await publish_message(client, f"{BASE_TOPIC}/state/power", "OFF")
-            else:
+
+            if powerStatus == PWR_ON_STATE:
+                # These aren't mutally exclusive, during initial startup may give weird codes which then breaks fetching
+                # the rest of the config values -- only fetch them if we know it's on
                 await publish_message(client, f"{BASE_TOPIC}/state/power", "ON")
                 await get_all_config_values(client, projector)
                 
@@ -82,7 +85,7 @@ async def get_all_config_values(client, projector):
             await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", int(value))
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
-            
+
     await get_all_option_values(client, projector)
 
 async def get_all_option_values(client, projector):
