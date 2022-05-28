@@ -67,7 +67,7 @@ async def poll_projector_status(client, projector):
             else:
                 await publish_message(client, f"{BASE_TOPIC}/state/power", "ON")
                 await get_all_config_values(client, projector)
-                await get_all_option_values(client, projector)
+                
 
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
@@ -82,6 +82,8 @@ async def get_all_config_values(client, projector):
             await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", int(value))
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
+            
+    await get_all_option_values(client, projector)
 
 async def get_all_option_values(client, projector):
     for key_name, config in EPSON_OPTIONS.items():
