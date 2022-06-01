@@ -21,9 +21,11 @@ EPSON_UNIQUE_IDENTIFIER = f'EPSON_AT_{EPSON_IP}'
 
 _LOGGER = logging.getLogger(__name__)
 
+logging.getLogger("asyncio").setLevel(logging.DEBUG)
+
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(   
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.Formatter("%(asctime)s - [%(threadName)s] - %(name)s - %(levelname)s - %(message)s")
 )
 _LOGGER.addHandler(console_handler)
 _LOGGER.setLevel(logging.DEBUG)
@@ -75,7 +77,7 @@ async def poll_projector_status(client, projector):
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
 
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
 
 async def get_all_config_values(client, projector):
     for key_name in EPSON_CONFIG_RANGES:
@@ -232,4 +234,4 @@ async def main():
             await asyncio.sleep(reconnect_interval)
 
 
-asyncio.run(main())
+asyncio.run(main(), debug=True)

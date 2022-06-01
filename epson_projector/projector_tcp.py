@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(   
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.Formatter("%(asctime)s - [%(threadName)s] - %(name)s - %(levelname)s - %(message)s")
 )
 _LOGGER.addHandler(console_handler)
 _LOGGER.setLevel(logging.DEBUG)
