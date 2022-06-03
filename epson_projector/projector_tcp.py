@@ -76,7 +76,7 @@ class ProjectorTcp:
         if self._isOpen:
             self._writer.close()
 
-    async def get_property(self, command, timeout, bytes_to_read=16):
+    async def get_property(self, command, timeout, bytes_to_read=64):
         """Get property state from device."""
         response = await self.send_request(
             timeout=timeout, command=command + GET_CR, bytes_to_read=bytes_to_read
@@ -107,7 +107,7 @@ class ProjectorTcp:
         return response
 
 
-    async def send_request(self, timeout, command, bytes_to_read=16):
+    async def send_request(self, timeout, command, bytes_to_read=64):
         """Send TCP request to Epson."""
         formatted_command = command + CR
 
