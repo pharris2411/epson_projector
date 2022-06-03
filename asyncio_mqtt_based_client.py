@@ -85,7 +85,6 @@ async def get_all_config_values(client, projector):
             value = await projector.read_config_value(key_name)
         
             await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", int(value))
-            await asyncio.sleep(0.5)
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
 
@@ -99,7 +98,6 @@ async def get_all_option_values(client, projector):
                 if raw_value == option[2]:    
                     await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", option[0])
                     break
-            await asyncio.sleep(0.5)
         except Exception as inst:
             print(f"---- Exception thrown: {inst}")
 

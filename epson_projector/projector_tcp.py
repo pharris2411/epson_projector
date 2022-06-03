@@ -76,12 +76,12 @@ class ProjectorTcp:
         if self._isOpen:
             self._writer.close()
 
-    async def get_property(self, command, timeout, bytes_to_read=64):
+    async def get_property(self, command, timeout, bytes_to_read=256):
         """Get property state from device."""
         response = await self.send_request(
             timeout=timeout, command=command + GET_CR, bytes_to_read=bytes_to_read
         )
-        _LOGGER.debug("Response is %s", response)
+        _LOGGER.debug(f"Response to command {command} is {response}")
         if not response:
             raise Exception("No response!")
         try:
@@ -107,7 +107,7 @@ class ProjectorTcp:
         return response
 
 
-    async def send_request(self, timeout, command, bytes_to_read=64):
+    async def send_request(self, timeout, command, bytes_to_read=256):
         """Send TCP request to Epson."""
         formatted_command = command + CR
 
@@ -119,6 +119,7 @@ class ProjectorTcp:
             with async_timeout.timeout(timeout):
                 self._writer.write(formatted_command.encode())
                 response = await self._reader.read(bytes_to_read)
+                _LOGGER.debug(f"Raw response: {response.decode()}")
                 response = response.decode().replace(CR_COLON, "")
                 if response == ERROR:
                     raise Exception("No response!")
