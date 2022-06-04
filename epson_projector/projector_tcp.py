@@ -88,7 +88,13 @@ class ProjectorTcp:
             resp_beginning = f"{command}="
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
-                raise Exception("No response!")
+                _LOGGER.debug(f"Response was not expected -- retrying a read")
+                response = self.read(bytes_to_read)
+                _LOGGER.debug(f"Retried read resulted in command {command} is {response}")
+                resp_beginning = f"{command}="
+                index_of_response = response.find(resp_beginning)
+                if index_of_response == -1:
+                    raise Exception("No response!")
             return response[index_of_response:].replace(resp_beginning, "")
         except KeyError:
             raise Exception("Error fetching!")
@@ -115,15 +121,17 @@ class ProjectorTcp:
             await self.async_init()
         if self._isOpen and formatted_command:
             _LOGGER.debug(f"Sending command {formatted_command}")
-            bytes_to_read = bytes_to_read if bytes_to_read else 16
             with async_timeout.timeout(timeout):
                 self._writer.write(formatted_command.encode())
-                response = await self._reader.read(bytes_to_read)
-                _LOGGER.debug(f"Raw response: {response.decode()}")
-                response = response.decode().replace(CR_COLON, "")
-                if response == ERROR:
-                    raise Exception("No response!")
-                return response
+                return await self.read(bytes_to_read)
+    
+    async def read(self, bytes_to_read=256):
+        response = await self._reader.read(bytes_to_read)
+        _LOGGER.debug(f"Raw response: {response.decode()}")
+        response = response.decode().replace(CR_COLON, "")
+        if response == ERROR:
+            raise Exception("No response!")
+        return response
 
     async def get_serial(self):
         """Send TCP request for serial to Epson."""
