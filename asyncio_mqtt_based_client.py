@@ -4,6 +4,7 @@ from random import randrange
 from asyncio_mqtt import Client, MqttError
 import json
 import logging
+import os
 
 import epson_projector as epson
 from epson_projector.const import (
@@ -14,10 +15,13 @@ from epson_projector.const import (
     PWR_ON_STATE,
 )
 
-BASE_TOPIC = 'epson'
-MQTT_HOST = '192.168.1.98'
-EPSON_IP = '192.168.1.30'
+BASE_TOPIC = os.environ.get('MQTT_BASE_TOPIC') or 'epson'
+MQTT_HOST = os.environ.get('MQTT_HOST')
+EPSON_IP = os.environ.get('EPSON_IP')
 EPSON_UNIQUE_IDENTIFIER = f'EPSON_AT_{EPSON_IP}'
+
+if not MQTT_HOST or not EPSON_IP:
+    raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_IP environment variables are set.')
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,7 +107,7 @@ async def get_all_option_values(client, projector):
 
 async def publish_message(client, topic, message):
     _LOGGER.debug(f"Publishing to MQTT: {topic} -- {message}\n")
-    await client.publish( topic, message)
+    await client.publish(topic, message, retain = True)
 
 async def process_commands(messages, projector, client):
     async for message in messages:
@@ -205,9 +209,6 @@ async def publish_homeassistant_discovery_config(projector, client):
                 "payload_not_available": "OFF",
             })
         )
-
-        
-
 
 async def cancel_tasks(tasks):
     for task in tasks:
