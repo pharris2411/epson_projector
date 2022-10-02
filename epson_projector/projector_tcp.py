@@ -89,7 +89,7 @@ class ProjectorTcp:
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
                 _LOGGER.debug(f"Response was not expected -- retrying a read")
-                response = self.read(bytes_to_read)
+                response = await self.read(bytes_to_read)
                 _LOGGER.debug(f"Retried read resulted in command {command} is {response}")
                 resp_beginning = f"{command}="
                 index_of_response = response.find(resp_beginning)
