@@ -30,7 +30,7 @@ class Projector:
         self,
         host,
         websession=None,
-        type=HTTP,
+        type=TCP,
         timeout_scale=1.0,
     ):
         """
@@ -45,23 +45,11 @@ class Projector:
         self._type = type
         self._timeout_scale = timeout_scale
         self._power = None
-        if self._type == HTTP:
-            self._host = host
-            from .projector_http import ProjectorHttp
 
-            self._projector = ProjectorHttp(
-                host=host, websession=websession, port=HTTP_PORT
-            )
-        elif self._type == TCP:
-            from .projector_tcp import ProjectorTcp
+        from .projector_tcp import ProjectorTcp
 
-            self._host = host
-            self._projector = ProjectorTcp(host, TCP_PORT)
-        elif self._type == SERIAL:
-            from .projector_serial import ProjectorSerial
-
-            self._host = host
-            self._projector = ProjectorSerial(host)
+        self._host = host
+        self._projector = ProjectorTcp(host, TCP_PORT)
 
     def close(self):
         """Close connection. Not used in HTTP"""

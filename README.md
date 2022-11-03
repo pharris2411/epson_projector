@@ -32,7 +32,7 @@ Run `python /usr/src/app/asyncio_mqtt_based_client.py`
 
 You'll need an MQTT broker first, so setup that integration if you haven't already.
 
-Once this server starts it will publish to the `homeassistant` topic a list of capabilities, and Home Assistant should automatically pick this up on your Entities list. If the projector is not on the entities will show up as unavailable. These automatically become available when the projector powers on and latches onto a video signal correctly.
+Once this server starts it will publish to the `homeassistant` topic a list of capabilities, and Home Assistant should automatically pick this up on your Entities list. If the projector is not powered on, the entities will show up as unavailable. These automatically become available when the projector powers on and latches onto a video signal correctly. (For whatever reason if the projector hasn't latched onto a video signal it won't report as powered on.)
 
 From there you can add things as needed to your HA UI. I have two places where I use it.
 
