@@ -1,5 +1,5 @@
 """Main of Epson projector module."""
-from .const import BUSY, TCP_PORT, HTTP_PORT, POWER, HTTP, TCP, SERIAL, EPSON_CONFIG_RANGES
+from .const import BUSY, TCP_PORT, HTTP_PORT, POWER, HTTP, TCP, SERIAL, EPSON_CONFIG_RANGES, EPSON_READOUTS
 from .timeout import get_timeout
 
 from .lock import Lock
@@ -128,11 +128,15 @@ class Projector:
 
     async def read_config_value(self, config, timeout=None):
         """Read a config value from Epson."""
-        if config not in EPSON_CONFIG_RANGES:
+        if config in EPSON_CONFIG_RANGES:
+            entry = EPSON_CONFIG_RANGES[config]
+        elif config in EPSON_READOUTS:
+            entry = EPSON_READOUTS[config]
+        else:
             raise Exception(f"Error!!! Trying to read {config} is not accepted!")
         
-        command = EPSON_CONFIG_RANGES[config]['epson_code']
-        value_translator_setting = EPSON_CONFIG_RANGES[config]['value_translator']
+        command = entry['epson_code']
+        value_translator_setting = entry['value_translator']
 
         _LOGGER.debug("Getting property %s", command)
 

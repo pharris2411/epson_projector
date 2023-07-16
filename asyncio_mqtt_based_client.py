@@ -11,6 +11,7 @@ from epson_projector.const import (
     EPSON_KEY_COMMANDS, 
     EPSON_CONFIG_RANGES,
     EPSON_OPTIONS,
+    EPSON_READOUTS,
     PWR_OFF_STATE,
     PWR_ON_STATE,
 )
@@ -85,6 +86,14 @@ async def poll_projector_status(client, projector):
 
 async def get_all_config_values(client, projector):
     for key_name in EPSON_CONFIG_RANGES:
+        try:
+            value = await projector.read_config_value(key_name)
+        
+            await publish_message(client, f"{BASE_TOPIC}/state/{key_name}", int(value))
+        except Exception as inst:
+            print(f"---- Exception thrown: {inst}")
+    
+    for key_name in EPSON_READOUTS:
         try:
             value = await projector.read_config_value(key_name)
         
@@ -204,6 +213,18 @@ async def publish_homeassistant_discovery_config(projector, client):
                 "name": f"Load Image Memory #{i}", 
                 "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_image_memory_{i}",
                 "command_topic": f"{BASE_TOPIC}/command/MEMORY_{i}", 
+                "availability_topic": f"{BASE_TOPIC}/state/power",
+                "payload_available": "ON",
+                "payload_not_available": "OFF",
+            })
+        )
+        
+    for key_name, config in EPSON_READOUTS.items():
+        await publish_message(client, f"homeassistant/sensor/{BASE_TOPIC}/{key_name.lower()}/config", 
+            json.dumps({
+                "name": f"{config['human_name']}", 
+                "unique_id": f"{EPSON_UNIQUE_IDENTIFIER}_{key_name.lower()}",
+                "state_topic": f"{BASE_TOPIC}/state/{key_name}",
                 "availability_topic": f"{BASE_TOPIC}/state/power",
                 "payload_available": "ON",
                 "payload_not_available": "OFF",

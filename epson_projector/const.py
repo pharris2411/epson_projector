@@ -145,6 +145,15 @@ EPSON_KEY_COMMANDS = {
     "HDR_DYNAMIC_RANGE_SDR":   [('DYNRANGE', '01')],
     "HDR_DYNAMIC_RANGE_HDR10": [('DYNRANGE', '21')],
     "HDR_DYNAMIC_RANGE_HLG":   [('DYNRANGE', '30')],
+
+    "ASPECT_AUTO": [('ASPECT', '30')],
+    "ASPECT_FULL": [('ASPECT', '40')],
+    "ASPECT_ZOOM": [('ASPECT', '50')],
+    "ASPECT_ANAMORPHIC": [('ASPECT', '80')],
+    "ASPECT_HORIZ_SQUEEZE": [('ASPECT', '90')],
+
+    "FOCUS_INC": [('FOCUS', 'INC')],
+    "FOCUS_DEC": [('FOCUS', 'DEC')],
 }
 
 EPSON_CONFIG_RANGES = {
@@ -197,6 +206,51 @@ EPSON_CONFIG_RANGES = {
         'human_name': 'Contrast',
         'humanized_range': range(0,101),
     },
+    'DENSITY': {
+        'epson_code': 'DENSITY',
+        'valid_range': range(0,256),
+        'value_translator': '100',
+        'human_name': 'Saturation',
+        'humanized_range': range(0,101),
+    },
+    'TINT': {
+        'epson_code': 'TINT',
+        'valid_range': range(0,256),
+        'value_translator': '100',
+        'human_name': 'Tint', 
+        'humanized_range': range(0,101),
+    },
+}
+
+EPSON_READOUTS = {
+    'FOCUS': {
+        'epson_code': 'FOCUS',
+        'valid_range': range(0,1024),
+        'value_translator': None,
+        'human_name': 'Lens Focus',
+        'humanized_range': range(0,1024),
+    },
+    'ZOOM': {
+        'epson_code': 'ZOOM',
+        'valid_range': range(0,1024),
+        'value_translator': None,
+        'human_name': 'Lens Zoom',
+        'humanized_range': range(0,1024),
+    },
+    'LENS': {
+        'epson_code': 'LENS',
+        'valid_range': range(0,1024),
+        'value_translator': None,
+        'human_name': 'Lens Vertical Shift',
+        'humanized_range': range(0,1024),
+    },
+    'HLENS': {
+        'epson_code': 'HLENS',
+        'valid_range': range(0,1024),
+        'value_translator': None,
+        'human_name': 'Lens Horizontal Shift',
+        'humanized_range': range(0,1024),
+    }
 }
 
 EPSON_OPTIONS = {
@@ -238,7 +292,18 @@ EPSON_OPTIONS = {
             ("Natural", "CMODE_NATURAL", '07'),            
             ("B&W Cinema", "CMODE_BWCINEMA", '20'),
         ]
-    }
+    },
+    'ASPECT': {
+        'human_name': 'Aspect Ratio',
+        'epson_command': 'ASPECT',
+        'options': [
+            ("Auto", "ASPECT_AUTO", '00 30'),
+            ("Full", "ASPECT_FULL", '40'),
+            ("Zoom", "ASPECT_ZOOM", '50'),
+            ("Anamorphic", "ASPECT_ANAMORPHIC", '80'),
+            ("Horizontal Squeeze", "ASPECT_HORIZ_SQUEEZE", '90'),
+        ]
+    },
 }
 
 

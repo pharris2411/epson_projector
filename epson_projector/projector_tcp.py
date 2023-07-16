@@ -52,10 +52,11 @@ class ProjectorTcp:
 
     async def async_init(self):
         """Async init to open connection with projector."""
+        _LOGGER.debug("Executing async init")
         try:
             with async_timeout.timeout(10):
                 self._reader, self._writer = await asyncio.open_connection(
-                    host=self._host, port=self._port, loop=self._loop
+                    host=self._host, port=self._port
                 )
                 self._writer.write(ESCVPNET_HELLO_COMMAND.encode())
                 response = await self._reader.read(16)
@@ -78,6 +79,7 @@ class ProjectorTcp:
 
     async def get_property(self, command, timeout, bytes_to_read=256):
         """Get property state from device."""
+        _LOGGER.debug(f"Sending request {command}")
         response = await self.send_request(
             timeout=timeout, command=command + GET_CR, bytes_to_read=bytes_to_read
         )
