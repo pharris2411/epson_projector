@@ -176,7 +176,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                           json.dumps({
                               "name": f"{EPSON_NAME} - Epson Projector Power",
                               "unique_id": f"{EPSON_NAME}_pwr",
-                              "command_topic": f"{MQTT_BASE_TOPIC}/command/power",
+                              "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_power",
                               "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power"
                           })
                           )
@@ -187,8 +187,8 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - {config['human_name']}",
                                   "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{key_name}",
-                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{key_name}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
+                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
                                   "min": min(config['humanized_range']),
                                   "max": max(config['humanized_range']),
                                   "step": (1, 5)[config['value_translator'] == '50-100'],
@@ -205,7 +205,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - {config['human_name']}",
                                   "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{key_name}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
                                   "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
                                   "options": [
                                       x[0] for x in config['options']
@@ -222,7 +222,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - Load Lens Memory #{i}",
                                   "unique_id": f"{EPSON_NAME}_lens_memory_{i}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/LENS_MEMORY_{i}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_LENS_MEMORY_{i}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",
                                   "payload_not_available": "OFF",
@@ -234,7 +234,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - Load Image Memory #{i}",
                                   "unique_id": f"{EPSON_NAME}_image_memory_{i}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/MEMORY_{i}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_MEMORY_{i}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",
                                   "payload_not_available": "OFF",
