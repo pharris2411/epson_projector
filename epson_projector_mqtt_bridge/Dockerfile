@@ -14,7 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-COPY run.sh /
-RUN chmod a+x /run.sh
+COPY dockerfs /
 
-ENTRYPOINT [ "/run.sh" ]
+ENTRYPOINT ["/init"]
+
+#COPY run.sh /
+#RUN chmod a+x /run.sh
+#
+#CMD [ "/run.sh" ]
