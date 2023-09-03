@@ -20,24 +20,23 @@ BASE_TOPIC = os.environ.get('MQTT_BASE_TOPIC', 'epson')
 MQTT_HOST = os.environ.get('MQTT_HOST')
 MQTT_USERNAME = os.environ.get('MQTT_USERNAME', None)
 MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', None)
-EPSON_HOST = os.environ.get('EPSON_IP')
+EPSON_HOST = os.environ.get('EPSON_HOST')
 EPSON_NAME = os.environ.get('EPSON_NAME', EPSON_HOST)
 
-LOGGING_LEVEL = str.upper(os.environ.get('LOGGING_LEVEL', 'DEBUG'))
-
 if not MQTT_HOST or not EPSON_HOST:
-    raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_IP environment variables are set.')
+    raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
+                    'set.')
 
 _LOGGER = logging.getLogger(__name__)
 
-logging.getLogger("asyncio").setLevel(LOGGING_LEVEL)
+logging.getLogger("asyncio").setLevel(logging.DEBUG)
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(   
     logging.Formatter("%(asctime)s - [%(threadName)s] - %(name)s - %(levelname)s - %(message)s")
 )
 _LOGGER.addHandler(console_handler)
-_LOGGER.setLevel(LOGGING_LEVEL)
+_LOGGER.setLevel(logging.DEBUG)
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
