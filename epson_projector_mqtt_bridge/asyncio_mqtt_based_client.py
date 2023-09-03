@@ -24,6 +24,7 @@ MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', None)
 MQTT_BASE_TOPIC = os.getenv('MQTT_BASE_TOPIC', 'epson')
 EPSON_HOST = os.getenv('EPSON_HOST')
 EPSON_NAME = os.getenv('EPSON_NAME', EPSON_HOST)
+REFRESH_SECONDS = os.getenv('REFRESH_SECONDS', 5)
 
 if not MQTT_HOST or not EPSON_HOST:
     raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
@@ -269,14 +270,13 @@ async def cancel_tasks(tasks):
 async def main():
     # Run the epson_projector_bridge indefinitely. Reconnect automatically
     # if the connection is lost.
-    reconnect_interval = 3  # [seconds]
     while True:
         try:
             await epson_projector_bridge()
         except MqttError as error:
-            _LOGGER.error(f'{error} | Reconnecting in {reconnect_interval} seconds.')
+            _LOGGER.error(f'{error} | Reconnecting in {REFRESH_SECONDS} seconds.')
         finally:
-            await asyncio.sleep(reconnect_interval)
+            await asyncio.sleep(REFRESH_SECONDS)
 
 
 asyncio.run(main(), debug=True)
