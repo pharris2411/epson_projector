@@ -11,5 +11,3 @@ EPSON_NAME=$(bashio::config 'epson_name')
 LOGGING_LEVEL=$(bashio::config 'logging_level')
 
 python /usr/src/app/asyncio_mqtt_based_client.py
-
-CMD [ "/run.sh" ]
