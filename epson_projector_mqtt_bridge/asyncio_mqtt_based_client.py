@@ -151,8 +151,8 @@ async def process_commands(messages, projector, client):
             if command in EPSON_CONFIG_RANGES:
                 await projector.send_config_value(command, value)
 
-                # new_value = await projector.read_config_value(command)
-                # await publish_message(client, f"{BASE_TOPIC}/state/{command}", int(new_value))
+                new_value = await projector.read_config_value(command)
+                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{command}", int(new_value))
 
             elif command in EPSON_KEY_COMMANDS:
                 await projector.send_command(command)
