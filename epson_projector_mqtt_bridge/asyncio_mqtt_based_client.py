@@ -161,11 +161,8 @@ async def process_commands(messages, projector, client):
                     if value == option[0]:
                         await projector.send_command(option[1])
                         break
-            elif command == f"{EPSON_NAME}_power":
-                if value == 'OFF':
-                    await projector.send_command("PWR OFF")
-                else:
-                    await projector.send_command("PWR ON")
+            elif command == f"power":
+                await projector.send_command(f"PWR {value}")
             else:
                 _LOGGER.error(f"Unknown command {command}")
         except Exception as inst:
