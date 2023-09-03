@@ -11,20 +11,9 @@ FROM $BUILD_FROM
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
+#COPY requirements.txt ./
 COPY . .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        python3 \
-        python3-pip \
-        python3-dev \
-        git \
-        build-essential \
-    \
-    && pip3 install --no-cache-dir -U setuptools wheel \
-    && pip3 install --no-cache-dir -r ./requirements.txt \
-    && rm -rf /var/lib/apt/lists/*
+#
 
 COPY rootfs /
 
