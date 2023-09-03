@@ -206,6 +206,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                                   json.dumps({
                                       "name": f"{EPSON_NAME} - {config['human_name']}",
                                       "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
+                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
                                       "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
                                       "options": [
                                           x[0] for x in config['options']
