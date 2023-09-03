@@ -143,7 +143,7 @@ async def process_commands(messages, projector, client):
     async for message in messages:
         # 🤔 Note that we assume that the message paylod is an
         # UTF8-encoded string (hence the `bytes.decode` call).
-        command = str.lstrip(message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):], f"{EPSON_NAME}_")
+        command = message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):].removeprefix(EPSON_NAME + "_")
         value = message.payload.decode()
 
         _LOGGER.info(f"Execute command '{command}' with value of '{value}'")
@@ -161,7 +161,7 @@ async def process_commands(messages, projector, client):
                     if value == option[0]:
                         await projector.send_command(option[1])
                         break
-            elif command == f"power":
+            elif command == f"{EPSON_NAME}_power":
                 if value == 'OFF':
                     await projector.send_command("PWR OFF")
                 else:
