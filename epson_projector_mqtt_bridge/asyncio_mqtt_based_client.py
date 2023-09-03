@@ -73,7 +73,7 @@ async def epson_projector_bridge():
         # loggers. Otherwise, we may miss retained messages.
         await client.subscribe(f"{MQTT_BASE_TOPIC}/command/#")
 
-        task =  asyncio.create_task(poll_projector_status(client, projector))
+        task = asyncio.create_task(poll_projector_status(client, projector))
 
         tasks.add(task)
 
@@ -143,7 +143,7 @@ async def process_commands(messages, projector, client):
     async for message in messages:
         # 🤔 Note that we assume that the message paylod is an
         # UTF8-encoded string (hence the `bytes.decode` call).
-        command = message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):]
+        command = str.lstrip(message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):], f"{EPSON_NAME}_")
         value = message.payload.decode()
 
         _LOGGER.info(f"Execute command '{command}' with value of '{value}'")
@@ -161,7 +161,7 @@ async def process_commands(messages, projector, client):
                     if value == option[0]:
                         await projector.send_command(option[1])
                         break
-            elif command == f"{EPSON_NAME}_power":
+            elif command == f"power":
                 if value == 'OFF':
                     await projector.send_command("PWR OFF")
                 else:
