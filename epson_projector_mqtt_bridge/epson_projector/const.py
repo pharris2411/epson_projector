@@ -70,6 +70,7 @@ EPSON_CODES = {"PWR": "01"}
 EPSON_KEY_COMMANDS = {
     "PWR ON": [("PWR", "ON")],
     "PWR OFF": [("PWR", "OFF")],
+    "PWR": [("PWR", "READ_ONLY")],
     # "HDMILINK": [("jsoncallback", "HDMILINK?")],
     # "PWR": [("jsoncallback", "PWR?")],
     # "SOURCE": [("jsoncallback", "SOURCE?")],
@@ -254,6 +255,18 @@ EPSON_READOUTS = {
 }
 
 EPSON_OPTIONS = {
+    'POWER': {
+        'human_name': 'Power (Read Only)',
+        'epson_command': 'PWR',
+        'options': [
+            ("Standby", "PWR", '00'),
+            ("Laser On", "PWR", '01'),
+            ("Warm Up", "PWR", '02'),
+            ("Cool Down", "PWR", '03'),
+            ("Standby, Network On", "PWR", '04'),
+            ("Abnormal Standby", "PWR", '05')
+        ]
+    },
     'IMGPROC': {
         'human_name': 'Image Processing',
         'epson_command': 'IMGPROC',
