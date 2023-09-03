@@ -96,7 +96,6 @@ async def poll_projector_status(client, projector):
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "ON")
                 await get_all_config_values(client, projector)
 
-
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
 
@@ -200,7 +199,7 @@ async def publish_homeassistant_discovery_config(projector, client):
 
     for key_name, config in EPSON_OPTIONS.items():
         # special handling for the read-only POWER option
-        if key_name == 'POWER':
+        if key_name == 'POWER_READ_ONLY':
             await publish_message(client,
                                   f"homeassistant/select/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
                                   json.dumps({
