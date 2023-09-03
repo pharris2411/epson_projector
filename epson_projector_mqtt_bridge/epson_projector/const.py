@@ -255,9 +255,9 @@ EPSON_READOUTS = {
 }
 
 EPSON_OPTIONS = {
-    'POWER': {
+    'POWER_READ_ONLY': {
         'human_name': 'Power (Read Only)',
-        'epson_command': 'PWR',
+        'epson_command': "PWR",
         'options': [
             ("Standby", "PWR", '00'),
             ("On", "PWR", '01'),
