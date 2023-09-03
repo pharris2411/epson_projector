@@ -6,9 +6,7 @@ import json
 import logging
 import os
 
-from pprint import pformat
-
-import epson_projector as epson
+import epson_projector.projector as epson
 from epson_projector.const import (
     EPSON_KEY_COMMANDS, 
     EPSON_CONFIG_RANGES,
