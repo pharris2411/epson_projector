@@ -88,7 +88,6 @@ async def poll_projector_status(client, projector):
             power_status = await projector.get_power()
             if power_status == PWR_OFF_STATE:
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "OFF")
-                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", "STANDBY")
 
             if power_status == PWR_ON_STATE:
                 # These aren't mutally exclusive, during initial startup may give weird codes which then breaks fetching
@@ -205,8 +204,8 @@ async def publish_homeassistant_discovery_config(projector, client):
                                   json.dumps({
                                       "name": f"{EPSON_NAME} - {config['human_name']}",
                                       "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
-                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
+                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_power",
+                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power"
                                       "options": [
                                           x[0] for x in config['options']
                                       ],
