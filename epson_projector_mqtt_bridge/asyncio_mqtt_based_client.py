@@ -106,7 +106,7 @@ async def get_all_config_values(client, projector):
         try:
             value = await projector.read_config_value(key_name)
 
-            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{key_name}", int(value))
+            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}", int(value))
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
 
@@ -114,7 +114,7 @@ async def get_all_config_values(client, projector):
         try:
             value = await projector.read_config_value(key_name)
 
-            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{key_name}", int(value))
+            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}", int(value))
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
 
@@ -127,7 +127,7 @@ async def get_all_option_values(client, projector):
             raw_value = await projector.get_property(config['epson_command'])
             for option in config['options']:
                 if raw_value == option[2]:
-                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{key_name}", option[0])
+                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}", option[0])
                     break
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
