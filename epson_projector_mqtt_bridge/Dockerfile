@@ -13,7 +13,12 @@ WORKDIR /usr/src/app
 
 #COPY requirements.txt ./
 COPY . .
-#
+
+RUN \
+    set -x \
+    && apk add --no-cache \
+        py3-pip \
+        python3
 
 COPY rootfs /
 
