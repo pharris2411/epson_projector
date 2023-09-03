@@ -2,7 +2,7 @@
 
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("../README.md", "r") as fh:
     long_description = fh.read()
 
 with open('epson_projector/version.py') as fh:

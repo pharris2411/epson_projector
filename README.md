@@ -36,7 +36,7 @@ Once this server starts it will publish to the `homeassistant` topic a list of c
 
 From there you can add things as needed to your HA UI. I have two places where I use it.
 
-![Screenshot of Home Assistant configuration 1](screenshots/ha1.png)
+![Screenshot of Home Assistant configuration 1](epson_projector_bridge/screenshots/ha1.png)
 
 ```yaml
 
@@ -63,7 +63,7 @@ state_color: true
 
 This config is a bit more complex, but makes things a little more touch friendly for a phone.
 
-![Screenshot of Home Assistant configuration 2](screenshots/ha2.png)
+![Screenshot of Home Assistant configuration 2](epson_projector_bridge/screenshots/ha2.png)
 
 ```yaml
 - type: vertical-stack
