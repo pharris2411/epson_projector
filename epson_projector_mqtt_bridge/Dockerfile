@@ -3,11 +3,6 @@ FROM $BUILD_FROM
 
 ARG S6_OVERLAY_VERSION=3.1.5.0
 
-ARG TEMPIO_VERSION BUILD_ARCH
-RUN \
-    curl -sSLf -o /usr/bin/tempio \
-    "https://github.com/home-assistant/tempio/releases/download/${TEMPIO_VERSION}/tempio_${BUILD_ARCH}"
-
 ## Install requirements for add-on
 RUN \
     apt-get update \
