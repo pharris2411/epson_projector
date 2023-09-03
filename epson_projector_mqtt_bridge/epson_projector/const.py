@@ -259,12 +259,11 @@ EPSON_OPTIONS = {
         'human_name': 'Power (Read Only)',
         'epson_command': "PWR",
         'options': [
-            ("Standby", "PWR", '00'),
-            ("On", "PWR", '01'),
-            ("Warm Up", "PWR", '02'),
-            ("Cool Down", "PWR", '03'),
-            ("Standby, Network On", "PWR", '04'),
-            ("Abnormal Standby", "PWR", '05')
+            ("On", "ON", '01'),
+            ("Warm Up", "WARMUP", '02'),
+            ("Cool Down", "COOLDOWN", '03'),
+            ("Standby, Network On", "STANDBY", '04'),
+            ("Abnormal Standby", "ABNORMAL_STANDBY", '05')
         ]
     },
     'IMGPROC': {

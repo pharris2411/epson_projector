@@ -85,12 +85,12 @@ async def epson_projector_bridge():
 async def poll_projector_status(client, projector):
     while True:
         try:
-            powerStatus = await projector.get_power()
-            if powerStatus == PWR_OFF_STATE:
+            power_status = await projector.get_power()
+            if power_status == PWR_OFF_STATE:
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "OFF")
-                await publish_message(client, )
+                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", "STANDBY")
 
-            if powerStatus == PWR_ON_STATE:
+            if power_status == PWR_ON_STATE:
                 # These aren't mutally exclusive, during initial startup may give weird codes which then breaks fetching
                 # the rest of the config values -- only fetch them if we know it's on
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "ON")
