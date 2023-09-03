@@ -88,6 +88,7 @@ async def poll_projector_status(client, projector):
             powerStatus = await projector.get_power()
             if powerStatus == PWR_OFF_STATE:
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "OFF")
+                await publish_message(client, )
 
             if powerStatus == PWR_ON_STATE:
                 # These aren't mutally exclusive, during initial startup may give weird codes which then breaks fetching
@@ -198,21 +199,36 @@ async def publish_homeassistant_discovery_config(projector, client):
                               )
 
     for key_name, config in EPSON_OPTIONS.items():
-        await publish_message(client,
-                              f"homeassistant/select/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
-                              json.dumps({
-                                  "name": f"{EPSON_NAME} - {config['human_name']}",
-                                  "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
-                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
-                                  "options": [
-                                      x[0] for x in config['options']
-                                  ],
-                                  "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
-                                  "payload_available": "ON",
-                                  "payload_not_available": "OFF",
-                              })
-                              )
+        # special handling for the read-only POWER option
+        if key_name == 'POWER':
+            await publish_message(client,
+                                  f"homeassistant/select/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
+                                  json.dumps({
+                                      "name": f"{EPSON_NAME} - {config['human_name']}",
+                                      "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
+                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
+                                      "options": [
+                                          x[0] for x in config['options']
+                                      ],
+                                  })
+                                  )
+        # everything else
+        else:
+            await publish_message(client,
+                                  f"homeassistant/select/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
+                                  json.dumps({
+                                      "name": f"{EPSON_NAME} - {config['human_name']}",
+                                      "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
+                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
+                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
+                                      "options": [
+                                          x[0] for x in config['options']
+                                      ],
+                                      "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
+                                      "payload_available": "ON",
+                                      "payload_not_available": "OFF",
+                                  })
+                                  )
 
     for i in range(1, 11):
         await publish_message(client,

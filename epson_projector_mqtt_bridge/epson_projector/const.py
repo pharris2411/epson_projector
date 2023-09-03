@@ -260,7 +260,7 @@ EPSON_OPTIONS = {
         'epson_command': 'PWR',
         'options': [
             ("Standby", "PWR", '00'),
-            ("Laser On", "PWR", '01'),
+            ("On", "PWR", '01'),
             ("Warm Up", "PWR", '02'),
             ("Cool Down", "PWR", '03'),
             ("Standby, Network On", "PWR", '04'),
