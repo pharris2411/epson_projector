@@ -5,6 +5,8 @@ import json
 import logging
 import os
 
+from pprint import pformat
+
 import epson_projector as epson
 from epson_projector.const import (
     EPSON_KEY_COMMANDS, 
@@ -28,14 +30,16 @@ console_handler.setFormatter(
 _LOGGER.addHandler(console_handler)
 _LOGGER.setLevel(logging.DEBUG)
 
-MQTT_HOST = os.environ.get('MQTT_HOST')
-MQTT_USERNAME = os.environ.get('MQTT_USERNAME', None)
-MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', None)
-MQTT_BASE_TOPIC = os.environ.get('MQTT_BASE_TOPIC', 'epson')
-EPSON_HOST = os.environ.get('EPSON_HOST')
-EPSON_NAME = os.environ.get('EPSON_NAME', EPSON_HOST)
+MQTT_HOST = os.getenv('MQTT_HOST')
+MQTT_USERNAME = os.getenv('MQTT_USERNAME', None)
+MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', None)
+MQTT_BASE_TOPIC = os.getenv('MQTT_BASE_TOPIC', 'epson')
+EPSON_HOST = os.getenv('EPSON_HOST')
+EPSON_NAME = os.getenv('EPSON_NAME', EPSON_HOST)
 
 _LOGGER.error(f"{MQTT_HOST} | {MQTT_BASE_TOPIC} | {MQTT_USERNAME} | {EPSON_HOST} | {EPSON_NAME}")
+
+_LOGGER.error(pformat(os.environ))
 
 if not MQTT_HOST or not EPSON_HOST:
     raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
