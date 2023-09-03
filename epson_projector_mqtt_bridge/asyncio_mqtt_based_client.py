@@ -1,3 +1,4 @@
+# region Imports
 import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 from asyncio_mqtt import Client, MqttError
@@ -16,7 +17,22 @@ from epson_projector.const import (
     PWR_OFF_STATE,
     PWR_ON_STATE,
 )
+# endregion Imports
 
+# region Environment Variables
+MQTT_HOST = os.getenv('MQTT_HOST')
+MQTT_USERNAME = os.getenv('MQTT_USERNAME', None)
+MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', None)
+MQTT_BASE_TOPIC = os.getenv('MQTT_BASE_TOPIC', 'epson')
+EPSON_HOST = os.getenv('EPSON_HOST')
+EPSON_NAME = os.getenv('EPSON_NAME', EPSON_HOST)
+
+if not MQTT_HOST or not EPSON_HOST:
+    raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
+                    'set.')
+# endregion Environment Variables
+
+# region Logging
 _LOGGER = logging.getLogger(__name__)
 
 logging.getLogger("asyncio").setLevel(logging.DEBUG)
@@ -29,21 +45,8 @@ console_handler.setFormatter(
 )
 _LOGGER.addHandler(console_handler)
 _LOGGER.setLevel(logging.DEBUG)
+# endregion Logging
 
-MQTT_HOST = os.getenv('MQTT_HOST')
-MQTT_USERNAME = os.getenv('MQTT_USERNAME', None)
-MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', None)
-MQTT_BASE_TOPIC = os.getenv('MQTT_BASE_TOPIC', 'epson')
-EPSON_HOST = os.getenv('EPSON_HOST')
-EPSON_NAME = os.getenv('EPSON_NAME', EPSON_HOST)
-
-_LOGGER.error(f"{MQTT_HOST} | {MQTT_BASE_TOPIC} | {MQTT_USERNAME} | {EPSON_HOST} | {EPSON_NAME}")
-
-_LOGGER.error(pformat(os.environ))
-
-if not MQTT_HOST or not EPSON_HOST:
-    raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
-                    'set.')
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
