@@ -2,13 +2,13 @@
 
 bashio::log.info "Loading environment variables"
 
-MQTT_HOST=$(bashio::config 'mqtt_host')
-MQTT_BASE_TOPIC=$(bashio::config 'mqtt_base_topic')
-MQTT_USERNAME=$(bashio::config 'mqtt_username')
-MQTT_PASSWORD=$(bashio::config 'mqtt_password')
+export MQTT_HOST=$(bashio::config 'mqtt_host')
+export MQTT_BASE_TOPIC=$(bashio::config 'mqtt_base_topic')
+export MQTT_USERNAME=$(bashio::config 'mqtt_username')
+export MQTT_PASSWORD=$(bashio::config 'mqtt_password')
 
-EPSON_HOST=$(bashio::config 'epson_host')
-EPSON_NAME=$(bashio::config 'epson_name')
+export EPSON_HOST=$(bashio::config 'epson_host')
+export EPSON_NAME=$(bashio::config 'epson_name')
 
 bashio::log.info "MQTT_HOST=${MQTT_HOST}"
 bashio::log.info "EPSON_HOST=${EPSON_HOST}"
