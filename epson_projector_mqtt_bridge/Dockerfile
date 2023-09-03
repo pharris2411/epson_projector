@@ -14,4 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+COPY run.sh /
+RUN chmod a+x /run.sh
+
 ENTRYPOINT [ "/run.sh" ]
