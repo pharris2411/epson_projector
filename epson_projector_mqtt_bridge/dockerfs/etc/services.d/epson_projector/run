@@ -1,4 +1,4 @@
-#!/command/with-contenv /bin/sh
+#!/usr/bin/with-contenv bashio
 
 MQTT_HOST=$(bashio::config 'mqtt_host')
 MQTT_BASE_TOPIC=$(bashio::config 'mqtt_base_topic')
