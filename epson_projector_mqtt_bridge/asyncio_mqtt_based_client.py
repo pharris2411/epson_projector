@@ -24,7 +24,7 @@ MQTT_PASSWORD = os.getenv('MQTT_PASSWORD', None)
 MQTT_BASE_TOPIC = os.getenv('MQTT_BASE_TOPIC', 'epson')
 EPSON_HOST = os.getenv('EPSON_HOST')
 EPSON_NAME = os.getenv('EPSON_NAME', EPSON_HOST)
-REFRESH_SECONDS = int(os.getenv('REFRESH_SECONDS', 5))
+RECONNECT_SECONDS = int(os.getenv('RECONNECT_SECONDS', 5))
 
 if not MQTT_HOST or not EPSON_HOST:
     raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
@@ -161,7 +161,7 @@ async def process_commands(messages, projector, client):
                     if value == option[0]:
                         await projector.send_command(option[1])
                         break
-            elif command == "power":
+            elif command == f"{EPSON_NAME}_power":
                 if value == 'OFF':
                     await projector.send_command("PWR OFF")
                 else:
@@ -274,9 +274,9 @@ async def main():
         try:
             await epson_projector_bridge()
         except MqttError as error:
-            _LOGGER.error(f'{error} | Reconnecting in {REFRESH_SECONDS} seconds.')
+            _LOGGER.error(f'{error} | Reconnecting in {RECONNECT_SECONDS} seconds.')
         finally:
-            await asyncio.sleep(REFRESH_SECONDS)
+            await asyncio.sleep(RECONNECT_SECONDS)
 
 
 asyncio.run(main(), debug=True)

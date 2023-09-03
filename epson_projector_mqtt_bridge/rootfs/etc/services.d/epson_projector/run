@@ -10,7 +10,7 @@ export MQTT_PASSWORD=$(bashio::config 'mqtt_password')
 export EPSON_HOST=$(bashio::config 'epson_host')
 export EPSON_NAME=$(bashio::config 'epson_name')
 
-export REFRESH_SECONDS=$(bashio::config 'refresh_seconds')
+export RECONNECT_SECONDS=$(bashio::config 'reconnect_seconds')
 
 bashio::log.info "MQTT_HOST=${MQTT_HOST}"
 bashio::log.info "EPSON_HOST=${EPSON_HOST}"

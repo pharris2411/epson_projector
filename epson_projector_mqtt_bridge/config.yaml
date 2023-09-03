@@ -18,7 +18,7 @@ options:
   mqtt_password: null
   epson_host: epson-projector.example.com
   epson_name: null
-  refresh_seconds: 5
+  reconnect_seconds: 5
 schema:
   mqtt_host: str
   mqtt_base_topic: str
@@ -26,4 +26,4 @@ schema:
   mqtt_password: str
   epson_host: str
   epson_name: str
-  refresh_seconds: int
+  reconnect_seconds: int
