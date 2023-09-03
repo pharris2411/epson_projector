@@ -1,4 +1,4 @@
-aiohttp
-pyserial_asyncio
-async_timeout
-asyncio_mqtt
+aiohttp>=3.3.0
+pyserial_asyncio>=0.4
+async_timeout>=3.0.0
+asyncio_mqtt>=0.12.1
