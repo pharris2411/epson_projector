@@ -1,5 +1,7 @@
 #!/usr/bin/with-contenv bashio
 
+bashio::log.info "Loading environment variables"
+
 MQTT_HOST=$(bashio::config 'mqtt_host')
 MQTT_BASE_TOPIC=$(bashio::config 'mqtt_base_topic')
 MQTT_USERNAME=$(bashio::config 'mqtt_username')
@@ -7,5 +9,8 @@ MQTT_PASSWORD=$(bashio::config 'mqtt_password')
 
 EPSON_HOST=$(bashio::config 'epson_host')
 EPSON_NAME=$(bashio::config 'epson_name')
+
+bashio::log.info "MQTT_HOST=${MQTT_HOST}"
+bashio::log.info "EPSON_HOST=${EPSON_HOST}"
 
 python3 /usr/src/app/asyncio_mqtt_based_client.py
