@@ -4,6 +4,7 @@ from .timeout import get_timeout
 
 from .lock import Lock
 
+import os
 import logging
 
 

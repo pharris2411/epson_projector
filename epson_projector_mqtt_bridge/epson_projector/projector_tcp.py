@@ -1,4 +1,5 @@
 """TCP connection of Epson projector module."""
+import os
 import logging
 
 import asyncio
