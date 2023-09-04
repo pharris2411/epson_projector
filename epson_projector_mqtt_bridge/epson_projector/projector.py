@@ -101,7 +101,7 @@ class Projector:
             _LOGGER.debug(f"Custom response beginning is: {resp_beginning}")
         timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
         if self._lock.checkLock():
-            raise Exception("Cannot fetch value as connection is locked")
+            raise Exception("Cannot fetch value as connection is locked. Will retry.")
 
         return await self._projector.get_property(command=command,
                                                   timeout=timeout,
@@ -136,7 +136,7 @@ class Projector:
 
         timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
         if self._lock.checkLock():
-            raise Exception("Cannot fetch value as connection is locked")
+            raise Exception("Cannot fetch value as connection is locked. Will retry.")
 
         value = await self._projector.get_property(command=command, timeout=timeout)
 

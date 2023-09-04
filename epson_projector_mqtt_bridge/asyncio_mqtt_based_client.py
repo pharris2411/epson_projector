@@ -48,6 +48,9 @@ _LOGGER.addHandler(console_handler)
 _LOGGER.setLevel(str.upper(os.getenv('LOGGING_LEVEL', 'INFO')))
 # endregion Logging
 
+# variable to track power state for logging purposes ONLY
+power_state = None
+
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
@@ -91,12 +94,14 @@ async def poll_projector_status(client, projector):
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "OFF")
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only",
                                       "Standby, Network On")
+                update_local_power_state_tracking("Standby")
 
             if power_status == PWR_ON_STATE:
                 # These aren't mutually exclusive, during initial startup may give weird codes which then breaks fetching
                 # the rest of the config values -- only fetch them if we know it's on
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "ON")
                 await get_power_read_only(client, power_status)
+                update_local_power_state_tracking("On")
 
         except Exception as inst:
             _LOGGER.warning(f"4-Exception thrown: {inst}")
@@ -160,6 +165,7 @@ async def get_single_option_value(client, projector, option_property):
             for option in config['options']:
                 if raw_value == option[2]:
                     await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{option_property.lower()}", option[0])
+                    return option[0]
         if option_property in EPSON_COMPLEX_OPTIONS and raw_value:
             if config.get('numbers_only', False):
                 # remove all non-numeric or space characters from the raw_value
@@ -174,6 +180,7 @@ async def get_single_option_value(client, projector, option_property):
                 processed_value = raw_value
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{option_property.lower()}", processed_value)
+            return processed_value
 
     except Exception as inst:
         _LOGGER.warning(f"2-Exception thrown: {inst}")
@@ -211,6 +218,7 @@ async def process_commands(messages, projector, client):
 
                 new_value = await projector.read_config_value(command)
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{command.lower()}", int(new_value))
+                _LOGGER.info(f"Projector reports that the new value for '{command}' is '{new_value}'")
 
             elif command in EPSON_KEY_COMMANDS:
                 _LOGGER.debug(f"{command} is a key command.")
@@ -226,7 +234,8 @@ async def process_commands(messages, projector, client):
                             await projector.send_command(option[1])
                             if EPSON_OPTIONS[command].get('epson_command', False):
                                 _LOGGER.debug(f"Getting value for: {option[1]}")
-                                await get_single_option_value(client, projector, command)
+                                new_value = await get_single_option_value(client, projector, command)
+                                _LOGGER.info(f"Projector reports that the new value for '{command}' is '{new_value}'")
             elif command in EPSON_COMPLEX_OPTIONS:
                 _LOGGER.debug(f"{command} is a complex option.")
                 if EPSON_COMPLEX_OPTIONS[command].get('read_only', False):
@@ -236,7 +245,8 @@ async def process_commands(messages, projector, client):
                     _LOGGER.debug(f"Sending command: {epson_command_to_send}")
                     await projector.send_command(epson_command_to_send)
                     _LOGGER.debug(f"Getting value for: {epson_command_to_send}")
-                    await get_single_option_value(client, projector, command)
+                    new_value = await get_single_option_value(client, projector, command)
+                    _LOGGER.info(f"Projector reports that the new value for '{command}' is '{new_value}'")
             elif command == f"POWER":
                 _LOGGER.debug(f"{command} is a power command.")
                 current_power = await projector.get_power()
@@ -244,10 +254,13 @@ async def process_commands(messages, projector, client):
                 if value == "ON" and current_power == PWR_OFF_STATE:
                     await projector.send_command("PWR ON")
                     await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", "Warm Up")
+                    update_local_power_state_tracking("Warm Up")
+
                 # only turn OFF power if it's ON
                 elif value == "OFF" and current_power == PWR_ON_STATE:
                     await projector.send_command("PWR OFF")
                     await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", "Cool Down")
+                    update_local_power_state_tracking("Cool Down")
                 else:
                     _LOGGER.error(f"Power command {command} with value {value} is not valid for current power state '{EPSON_POWER_STATES[current_power]}'.")
 
@@ -381,6 +394,13 @@ async def cancel_tasks(tasks):
             await task
         except asyncio.CancelledError:
             pass
+
+
+def update_local_power_state_tracking(new_power_state):
+    global power_state
+    if new_power_state != power_state:
+        power_state = new_power_state
+        _LOGGER.info(f"Projector transitions to state: {power_state}'")
 
 
 async def main():

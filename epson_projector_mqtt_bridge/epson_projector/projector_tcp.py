@@ -63,10 +63,10 @@ class ProjectorTcp:
                 response = await self._reader.read(16)
                 if response[0:10].decode() == ESCVPNETNAME and response[14] == 32:
                     self._isOpen = True
-                    _LOGGER.info("Connection open")
+                    _LOGGER.info("SUCCESS! Connected to Projector")
                     return
                 else:
-                    _LOGGER.info("Cannot open connection to Epson")
+                    _LOGGER.info("Cannot open connection to Epson (will retry).")
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout error")
         except ConnectionRefusedError:
