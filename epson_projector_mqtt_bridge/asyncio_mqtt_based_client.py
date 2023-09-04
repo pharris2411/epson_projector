@@ -145,16 +145,30 @@ async def get_all_config_values(client, projector):
 async def get_all_option_values(client, projector):
     for key_name in list(EPSON_OPTIONS.keys()) + list(EPSON_COMPLEX_OPTIONS.keys()):
         if key_name != "POWER_READ_ONLY":
-            await get_single_option_value(client, projector, key_name)
+            await get_single_option_value(client, projector, key_name, periodic_trigger=True)
 
 
-async def get_single_option_value(client, projector, option_property):
+async def get_single_option_value(client, projector, option_property, periodic_trigger=False, static_value=None):
     config = EPSON_OPTIONS.get(option_property, False) or EPSON_COMPLEX_OPTIONS[option_property]
     try:
         raw_value = None
         while True:
             try:
-                raw_value = await projector.get_property(config['epson_command'], resp_beginning=config.get('response_starts_with', None))
+                # support disabling of periodic updates for complex options
+                if (option_property in EPSON_COMPLEX_OPTIONS and
+                        periodic_trigger and
+                        config.get('no_periodic_update', False)
+                ):
+                    break
+
+                # support the static setting of values without querying the projector.
+                # useful for 'Send Command'
+                if static_value:
+                    raw_value = static_value
+                else:
+                    raw_value = await projector.get_property(config['epson_command'],
+                                                             resp_beginning=config.get('response_starts_with', None))
+
                 break
             except Exception as inst:
                 _LOGGER.warning(f"1-Exception thrown: {inst}")
@@ -243,10 +257,14 @@ async def process_commands(messages, projector, client):
                 else:
                     epson_command_to_send = f"{EPSON_COMPLEX_OPTIONS[command]['epson_command']} {value}"
                     _LOGGER.debug(f"Sending command: {epson_command_to_send}")
-                    await projector.send_command(epson_command_to_send)
-                    _LOGGER.debug(f"Getting value for: {epson_command_to_send}")
-                    new_value = await get_single_option_value(client, projector, command)
-                    _LOGGER.info(f"Projector reports that the new value for '{command}' is '{new_value}'")
+                    set_return_value = await projector.send_command(epson_command_to_send)
+                    if EPSON_COMPLEX_OPTIONS[command].get('use_set_return_value', False):
+                        _LOGGER.debug(f"Using get return value for: {epson_command_to_send}")
+                        new_value = await get_single_option_value(client, projector, command, static_value=set_return_value)
+                    else:
+                        _LOGGER.debug(f"Getting value for: {epson_command_to_send}")
+                        new_value = await get_single_option_value(client, projector, command)
+                    _LOGGER.info(f"The new value for '{command}' is '{new_value}'")
             elif command == f"POWER":
                 _LOGGER.debug(f"{command} is a power command.")
                 current_power = await projector.get_power()
@@ -268,7 +286,6 @@ async def process_commands(messages, projector, client):
                 _LOGGER.error(f"Unknown command {command}")
         except Exception as inst:
             _LOGGER.warning(f"---- 8-Exception thrown: {inst}")
-            raise
 
 
 async def publish_homeassistant_discovery_config(projector, client):

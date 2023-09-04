@@ -441,6 +441,13 @@ EPSON_COMPLEX_OPTIONS = {
         'response_starts_with': "UL",
         'include_starts_with_in_value': False,
         'numbers_only': True,
+    },
+    'SEND_COMMAND': {
+        'human_name': 'Send Command',
+        'epson_command': '',
+        'response_starts_with': '',
+        'no_periodic_update': True,
+        'use_set_return_value': True
     }
 }
 
