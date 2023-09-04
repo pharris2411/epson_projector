@@ -398,6 +398,7 @@ EPSON_OPTIONS = {
     'POWER_READ_ONLY': {
         'human_name': 'Power (Read Only)',
         'read_only': True,
+        'epson_command': 'PWR',
         'options': [
             ("On", "ON", '01'),
             ("Warm Up", "WARMUP", '02'),
