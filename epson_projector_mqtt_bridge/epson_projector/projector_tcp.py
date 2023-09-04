@@ -122,7 +122,7 @@ class ProjectorTcp:
 
     async def send_request(self, timeout, command, bytes_to_read=256):
         """Send TCP request to Epson."""
-        formatted_command = command + CR
+        formatted_command = str.lstrip(command) + CR
 
         if self._isOpen is False:
             await self.async_init()
