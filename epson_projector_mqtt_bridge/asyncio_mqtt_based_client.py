@@ -249,6 +249,8 @@ async def process_commands(messages, projector, client):
 
                 # get a dummy value to delay the clearing of the busy flag
                 await get_single_option_value(client, projector, "POWER_READ_ONLY")
+
+                _LOGGER.info(f"Command '{command}' is complete.")
             elif command in EPSON_OPTIONS:
                 _LOGGER.debug(f"{command} is an option.")
                 if EPSON_OPTIONS[command].get('read_only', False):
