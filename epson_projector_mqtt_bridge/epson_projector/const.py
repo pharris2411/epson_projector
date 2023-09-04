@@ -417,8 +417,7 @@ EPSON_OPTIONS = {
         ]
     },
     'SOURCE': {
-        'human_name': 'Source (Read Only)',
-        'read_only': True,
+        'human_name': 'Source',
         'epson_command': 'SOURCE',
         'options': [(source, source, code) for code, source in SOURCE_LIST.items()]
     },
