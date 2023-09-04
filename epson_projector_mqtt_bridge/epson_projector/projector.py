@@ -93,14 +93,19 @@ class Projector:
             self._power = power
         return self._power
 
-    async def get_property(self, command, timeout=None):
+    async def get_property(self, command, timeout=None, resp_beginning=None, include_beginning=False):
         """Get property state from device."""
-        _LOGGER.debug("Getting property %s", command)
+        _LOGGER.debug("get_property: Getting property %s", command)
+        if resp_beginning:
+            _LOGGER.debug(f"Custom response beginning is: {resp_beginning}")
         timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
         if self._lock.checkLock():
             raise Exception("Cannot fetch value as connection is locked")
 
-        return await self._projector.get_property(command=command, timeout=timeout)
+        return await self._projector.get_property(command=command,
+                                                  timeout=timeout,
+                                                  resp_beginning=resp_beginning,
+                                                  include_beginning=include_beginning)
 
     async def send_command(self, command):
         """Send command to Epson."""
@@ -124,9 +129,9 @@ class Projector:
             raise Exception(f"Error!!! Trying to read {config} is not accepted!")
         
         command = entry['epson_code']
-        value_translator_setting = entry['value_translator']
+        value_translator_setting = entry.get('value_translator', None)
 
-        _LOGGER.debug("Getting property %s", command)
+        _LOGGER.debug("read_config_value: Getting property %s", command)
 
         timeout = timeout if timeout else get_timeout(command, self._timeout_scale)
         if self._lock.checkLock():
@@ -134,8 +139,10 @@ class Projector:
 
         value = await self._projector.get_property(command=command, timeout=timeout)
 
-        return self.translate_value_from_epson(value, value_translator_setting)
-        
+        if value_translator_setting:
+            return self.translate_value_from_epson(value, value_translator_setting)
+        else:
+            return value
 
     async def send_config_value(self, config, value):
         """Send a config value to Epson."""

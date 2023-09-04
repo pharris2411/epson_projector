@@ -77,33 +77,38 @@ class ProjectorTcp:
         if self._isOpen:
             self._writer.close()
 
-    async def get_property(self, command, timeout, bytes_to_read=256):
+    async def get_property(self, command, timeout, bytes_to_read=256, resp_beginning=None, include_beginning=False):
         """Get property state from device."""
-        _LOGGER.debug(f"Sending request {command}")
         response = await self.send_request(
             timeout=timeout, command=command + GET_CR, bytes_to_read=bytes_to_read
         )
-        _LOGGER.debug(f"Response to command {command} is {response}")
+        _LOGGER.debug(f"Response to command {command}? is {response}")
         if not response:
             raise Exception("No response!")
         try:
-            resp_beginning = f"{command}="
+            resp_beginning = f"{command}=" if not resp_beginning else resp_beginning
+            _LOGGER.debug(f"Looking for response beginning {resp_beginning}")
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
                 _LOGGER.debug(f"Response was not expected -- retrying a read")
                 response = await self.read(bytes_to_read)
                 _LOGGER.debug(f"Retried read resulted in command {command} is {response}")
-                resp_beginning = f"{command}="
                 index_of_response = response.find(resp_beginning)
                 if index_of_response == -1:
                     raise Exception("No response!")
-            return response[index_of_response:].replace(resp_beginning, "")
+            if include_beginning:
+                return response
+            else:
+                return response[index_of_response:].replace(resp_beginning, "")
         except KeyError:
             raise Exception("Error fetching!")
 
     async def send_command(self, command, timeout):
         """Send command to Epson."""
-        formatted_command = ' '.join( ' '.join(x) for x in EPSON_KEY_COMMANDS[command])
+        if command in EPSON_KEY_COMMANDS:
+            formatted_command = ' '.join( ' '.join(x) for x in EPSON_KEY_COMMANDS[command])
+        else:
+            formatted_command = command
 
         _LOGGER.debug(f"Prepping command {formatted_command}")
 
@@ -113,7 +118,6 @@ class ProjectorTcp:
 
         response = await self.send_request(timeout=timeout, command=formatted_command)
         return response
-
 
     async def send_request(self, timeout, command, bytes_to_read=256):
         """Send TCP request to Epson."""
