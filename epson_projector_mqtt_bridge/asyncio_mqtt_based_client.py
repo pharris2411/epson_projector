@@ -400,7 +400,7 @@ def update_local_power_state_tracking(new_power_state):
     global power_state
     if new_power_state != power_state:
         power_state = new_power_state
-        _LOGGER.info(f"Projector transitions to state: {power_state}'")
+        _LOGGER.info(f"Projector transitions to state: '{power_state}'")
 
 
 async def main():

@@ -85,7 +85,7 @@ class ProjectorTcp:
         )
         _LOGGER.debug(f"Response to command {command}? is {response}")
         if not response:
-            raise Exception("No response!")
+            raise Exception("No response! Will retry.")
         try:
             resp_beginning = f"{command}=" if not resp_beginning else resp_beginning
             _LOGGER.debug(f"Looking for response beginning {resp_beginning}")
@@ -96,7 +96,7 @@ class ProjectorTcp:
                 _LOGGER.debug(f"Retried read resulted in command {command} is {response}")
                 index_of_response = response.find(resp_beginning)
                 if index_of_response == -1:
-                    raise Exception("No response!")
+                    raise Exception("No response! Will retry.")
             if include_beginning:
                 return response
             else:
@@ -137,7 +137,7 @@ class ProjectorTcp:
         _LOGGER.debug(f"Raw response: {response.decode()}")
         response = response.decode().replace(CR_COLON, "")
         if response == ERROR:
-            raise Exception("No response!")
+            raise Exception("No response! Will retry.")
         return response
 
     async def get_serial(self):
