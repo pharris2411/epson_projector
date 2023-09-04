@@ -67,10 +67,38 @@ LASER_LEVEL = "LUMLEVEL"
 
 EPSON_CODES = {"PWR": "01"}
 
+EPSON_POWER_STATES = {
+    "01": "On",
+    "02": "Warm Up",
+    "03": "Cool Down",
+    "04": "Standby, Network On",
+    "05": "Abnormal Standby",
+}
+
+DEFAULT_SOURCES = {
+    "HDMI1": "HDMI1",
+    "HDMI2": "HDMI2",
+    "PC": "PC",
+    "VIDEO": "VIDEO",
+    "USB": "USB",
+    "LAN": "LAN",
+    "WFD": "WiFi Direct",
+}
+
+SOURCE_LIST = {
+    "30": "HDMI1",
+    "10": "PC",
+    "40": "VIDEO",
+    "52": "USB",
+    "53": "LAN",
+    "56": "WDF",
+    "A0": "HDMI2",
+    "41": "VIDEO",
+}
+
 EPSON_KEY_COMMANDS = {
     "PWR ON": [("PWR", "ON")],
     "PWR OFF": [("PWR", "OFF")],
-    "PWR": [("PWR", "READ_ONLY")],
     # "HDMILINK": [("jsoncallback", "HDMILINK?")],
     # "PWR": [("jsoncallback", "PWR?")],
     # "SOURCE": [("jsoncallback", "SOURCE?")],
@@ -137,7 +165,7 @@ EPSON_KEY_COMMANDS = {
     "LENS_MEMORY_8": [("POPLP", "08")],
     "LENS_MEMORY_9": [("POPLP", "09")],
     "LENS_MEMORY_10": [("POPLP", "0A")],
-    
+
     "COLOR_SPACE_AUTO" : [('CLRSPACE', '00')],
     "COLOR_SPACE_BT709" : [('CLRSPACE', '01')],
     "COLOR_SPACE_BT2020" : [('CLRSPACE', '02')],
@@ -159,7 +187,7 @@ EPSON_KEY_COMMANDS = {
 
 EPSON_CONFIG_RANGES = {
     'HDR_RANGE': {
-        'epson_code': 'HDRPQ', 
+        'epson_code': 'HDRPQ',
         'valid_range': range(1, 17),
         'value_translator': None,
         'human_name': 'HDR Range',
@@ -218,7 +246,7 @@ EPSON_CONFIG_RANGES = {
         'epson_code': 'TINT',
         'valid_range': range(0,256),
         'value_translator': '100',
-        'human_name': 'Tint', 
+        'human_name': 'Tint',
         'humanized_range': range(0,101),
     },
 }
@@ -257,7 +285,7 @@ EPSON_READOUTS = {
 EPSON_OPTIONS = {
     'POWER_READ_ONLY': {
         'human_name': 'Power (Read Only)',
-        'epson_command': "PWR",
+        'read_only': True,
         'options': [
             ("On", "ON", '01'),
             ("Warm Up", "WARMUP", '02'),
@@ -265,6 +293,11 @@ EPSON_OPTIONS = {
             ("Standby, Network On", "STANDBY", '04'),
             ("Abnormal Standby", "ABNORMAL_STANDBY", '05')
         ]
+    },
+    'SOURCE': {
+        'human_name': 'Source',
+        'epson_command': 'SOURCE',
+        'options': [(source, source, code) for code, source in SOURCE_LIST.items()]
     },
     'IMGPROC': {
         'human_name': 'Image Processing',
@@ -321,27 +354,6 @@ EPSON_OPTIONS = {
 
 DEFAULT_TIMEOUT_TIME = 1
 TIMEOUT_TIMES = {"PWR ON": 40, "PWR OFF": 10, "SOURCE": 5, "ALL": 1}
-
-DEFAULT_SOURCES = {
-    "HDMI1": "HDMI1",
-    "HDMI2": "HDMI2",
-    "PC": "PC",
-    "VIDEO": "VIDEO",
-    "USB": "USB",
-    "LAN": "LAN",
-    "WFD": "WiFi Direct",
-}
-
-SOURCE_LIST = {
-    "30": "HDMI1",
-    "10": "PC",
-    "40": "VIDEO",
-    "52": "USB",
-    "53": "LAN",
-    "56": "WDF",
-    "A0": "HDMI2",
-    "41": "VIDEO",
-}
 
 INV_SOURCES = {v: k for k, v in DEFAULT_SOURCES.items()}
 

@@ -1,6 +1,6 @@
 name: "Epson Projector to MQTT Bridge"
 description: "Provides a bridge between the Epson Projector TCP service and MQTT."
-version: "0.0.49"
+version: "0.1.0"
 slug: "epson_projector_mqtt_bridge"
 url: "https://github.com/kjack9/ha-epson-projector-link"
 init: false
@@ -19,6 +19,8 @@ options:
   epson_host: epson-projector.example.com
   epson_name: null
   reconnect_seconds: 5
+  power_refresh_seconds: 5
+  properties_refresh_seconds: 15
 schema:
   mqtt_host: str
   mqtt_base_topic: str
@@ -27,3 +29,5 @@ schema:
   epson_host: str
   epson_name: str
   reconnect_seconds: int
+  power_refresh_seconds: int
+  properties_refresh_seconds: int

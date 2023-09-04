@@ -8,10 +8,11 @@ import os
 
 import epson_projector.projector as epson
 from epson_projector.const import (
-    EPSON_KEY_COMMANDS, 
+    EPSON_KEY_COMMANDS,
     EPSON_CONFIG_RANGES,
     EPSON_OPTIONS,
     EPSON_READOUTS,
+    EPSON_POWER_STATES,
     PWR_OFF_STATE,
     PWR_ON_STATE,
 )
@@ -25,6 +26,8 @@ MQTT_BASE_TOPIC = os.getenv('MQTT_BASE_TOPIC', 'epson')
 EPSON_HOST = os.getenv('EPSON_HOST')
 EPSON_NAME = os.getenv('EPSON_NAME', EPSON_HOST)
 RECONNECT_SECONDS = int(os.getenv('RECONNECT_SECONDS', 5))
+POWER_REFRESH_SECONDS = int(os.getenv('POWER_REFRESH_SECONDS', 10))
+PROPERTIES_REFRESH_SECONDS = int(os.getenv('PROPERTIES_REFRESH_SECONDS', 10))
 
 if not MQTT_HOST or not EPSON_HOST:
     raise Exception('Missing environment config! Please make sure MQTT_HOST and EPSON_HOST environment variables are '
@@ -73,9 +76,8 @@ async def epson_projector_bridge():
         # loggers. Otherwise, we may miss retained messages.
         await client.subscribe(f"{MQTT_BASE_TOPIC}/command/#")
 
-        task = asyncio.create_task(poll_projector_status(client, projector))
-
-        tasks.add(task)
+        tasks.add(asyncio.create_task(poll_projector_properties(client, projector)))
+        tasks.add(asyncio.create_task(poll_projector_status(client, projector)))
 
         # Wait for everything to complete (or fail due to, e.g., network
         # errors)
@@ -88,17 +90,32 @@ async def poll_projector_status(client, projector):
             power_status = await projector.get_power()
             if power_status == PWR_OFF_STATE:
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "OFF")
+                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only",
+                                      "Standby, Network On")
 
             if power_status == PWR_ON_STATE:
-                # These aren't mutally exclusive, during initial startup may give weird codes which then breaks fetching
+                # These aren't mutually exclusive, during initial startup may give weird codes which then breaks fetching
                 # the rest of the config values -- only fetch them if we know it's on
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power", "ON")
+                await get_power_read_only(client, power_status)
+
+        except Exception as inst:
+            _LOGGER.warning(f"Exception thrown: {inst}")
+
+        await asyncio.sleep(POWER_REFRESH_SECONDS)
+
+
+async def poll_projector_properties(client, projector):
+    while True:
+        try:
+            power_status = await projector.get_power()
+            if power_status == PWR_ON_STATE:
                 await get_all_config_values(client, projector)
 
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
 
-        await asyncio.sleep(10)
+        await asyncio.sleep(PROPERTIES_REFRESH_SECONDS)
 
 
 async def get_all_config_values(client, projector):
@@ -106,7 +123,7 @@ async def get_all_config_values(client, projector):
         try:
             value = await projector.read_config_value(key_name)
 
-            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}", int(value))
+            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
 
@@ -114,7 +131,7 @@ async def get_all_config_values(client, projector):
         try:
             value = await projector.read_config_value(key_name)
 
-            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}", int(value))
+            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
 
@@ -127,10 +144,42 @@ async def get_all_option_values(client, projector):
             raw_value = await projector.get_property(config['epson_command'])
             for option in config['options']:
                 if raw_value == option[2]:
-                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}", option[0])
+                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", option[0])
                     break
         except Exception as inst:
             _LOGGER.warning(f"Exception thrown: {inst}")
+
+
+async def get_single_option_value(client, projector, option_property):
+    config = EPSON_OPTIONS[option_property]
+    try:
+        raw_value = None
+        while True:
+            try:
+                raw_value = await projector.get_property(config['epson_command'])
+                break
+            except Exception as inst:
+                _LOGGER.warning(f"Exception thrown: {inst}")
+                await asyncio.sleep(1)
+                continue
+
+        if raw_value:
+            for option in config['options']:
+                if raw_value == option[2]:
+                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{option_property.lower()}", option[0])
+    except Exception as inst:
+        _LOGGER.warning(f"Exception thrown: {inst}")
+
+
+async def get_power_read_only(client, power_status):
+    config = EPSON_OPTIONS['POWER_READ_ONLY']
+    try:
+        for option in config['options']:
+            if power_status == option[2]:
+                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", option[0])
+                break
+    except Exception as inst:
+        _LOGGER.warning(f"Exception thrown: {inst}")
 
 
 async def publish_message(client, topic, message):
@@ -140,9 +189,11 @@ async def publish_message(client, topic, message):
 
 async def process_commands(messages, projector, client):
     async for message in messages:
-        # 🤔 Note that we assume that the message paylod is an
+        # 🤔 Note that we assume that the message payload is an
         # UTF8-encoded string (hence the `bytes.decode` call).
-        command = message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):].removeprefix(EPSON_NAME + "_")
+        command = message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):]
+        _LOGGER.debug(f"raw command: {command}")
+        command = str.upper(command.removeprefix(EPSON_NAME + "_"))
         value = message.payload.decode()
 
         _LOGGER.info(f"Execute command '{command}' with value of '{value}'")
@@ -151,17 +202,32 @@ async def process_commands(messages, projector, client):
                 await projector.send_config_value(command, value)
 
                 new_value = await projector.read_config_value(command)
-                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{command}", int(new_value))
+                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{command.lower()}", int(new_value))
 
             elif command in EPSON_KEY_COMMANDS:
                 await projector.send_command(command)
             elif command in EPSON_OPTIONS:
-                for option in EPSON_OPTIONS[command]['options']:
-                    if value == option[0]:
-                        await projector.send_command(option[1])
-                        break
-            elif command == f"power":
-                await projector.send_command(f"PWR {value}")
+                if EPSON_OPTIONS[command].get('read_only', False):
+                    _LOGGER.debug(f"Command {command} is read-only, ignoring")
+                else:
+                    for option in EPSON_OPTIONS[command]['options']:
+                        if value == option[0]:
+                            await projector.send_command(option[1])
+                            if EPSON_OPTIONS[command].get('epson_command', False):
+                                await get_single_option_value(client, projector, command)
+            elif command == f"POWER":
+                current_power = await projector.get_power()
+                # only turn ON power if it's OFF
+                if value == "ON" and current_power == PWR_OFF_STATE:
+                    await projector.send_command("PWR ON")
+                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", "Warm Up")
+                # only turn OFF power if it's ON
+                elif value == "OFF" and current_power == PWR_ON_STATE:
+                    await projector.send_command("PWR OFF")
+                    await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only", "Cool Down")
+                else:
+                    _LOGGER.error(f"Power command {command} with value {value} is not valid for current power state '{EPSON_POWER_STATES[current_power]}'.")
+
             else:
                 _LOGGER.error(f"Unknown command {command}")
         except Exception as inst:
@@ -184,8 +250,8 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - {config['human_name']}",
                                   "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
-                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name.lower()}",
+                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}",
                                   "min": min(config['humanized_range']),
                                   "max": max(config['humanized_range']),
                                   "step": (1, 5)[config['value_translator'] == '50-100'],
@@ -200,12 +266,12 @@ async def publish_homeassistant_discovery_config(projector, client):
         # special handling for the read-only POWER option
         if key_name == 'POWER_READ_ONLY':
             await publish_message(client,
-                                  f"homeassistant/select/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
+                                  f"homeassistant/select/{MQTT_BASE_TOPIC}/{EPSON_NAME}_power_read_only/config",
                                   json.dumps({
                                       "name": f"{EPSON_NAME} - {config['human_name']}",
-                                      "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_power",
-                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power"
+                                      "unique_id": f"{EPSON_NAME}_power_read_only",
+                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_power_read_only",
+                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power_read_only",
                                       "options": [
                                           x[0] for x in config['options']
                                       ],
@@ -218,8 +284,8 @@ async def publish_homeassistant_discovery_config(projector, client):
                                   json.dumps({
                                       "name": f"{EPSON_NAME} - {config['human_name']}",
                                       "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name}",
-                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name}",
+                                      "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_{key_name.lower()}",
+                                      "state_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}",
                                       "options": [
                                           x[0] for x in config['options']
                                       ],
@@ -235,7 +301,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - Load Lens Memory #{i}",
                                   "unique_id": f"{EPSON_NAME}_lens_memory_{i}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_LENS_MEMORY_{i}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_lens_memory_{i}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",
                                   "payload_not_available": "OFF",
@@ -247,7 +313,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - Load Image Memory #{i}",
                                   "unique_id": f"{EPSON_NAME}_image_memory_{i}",
-                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_MEMORY_{i}",
+                                  "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_memory_{i}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",
                                   "payload_not_available": "OFF",
@@ -260,7 +326,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - {config['human_name']}",
                                   "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
-                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{key_name}",
+                                  "state_topic": f"{MQTT_BASE_TOPIC}/state/{key_name.lower()}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",
                                   "payload_not_available": "OFF",
