@@ -139,34 +139,6 @@ async def get_all_config_values(client, projector):
     await get_all_option_values(client, projector)
 
 
-# async def get_all_option_values(client, projector):
-#     for key_name, config in EPSON_OPTIONS.items():
-#         try:
-#             raw_value = await projector.get_property(config['epson_command'])
-#             for option in config['options']:
-#                 if raw_value == option[2]:
-#                     await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", option[0])
-#                     break
-#         except Exception as inst:
-#             _LOGGER.warning(f"Exception thrown: {inst}")
-#
-#     for key_name, config in EPSON_COMPLEX_OPTIONS.items():
-#         try:
-#             if config.get('response_starts_with', False):
-#                 raw_value = await projector.get_property(
-#                     config['epson_command'],
-#                     resp_beginning=config['response_starts_with'],
-#                     include_beginning=config.get('include_starts_with_in_value', False)
-#                 )
-#             else:
-#                 raw_value = await projector.get_property(
-#                     config['epson_command'],
-#                     resp_beginning=config.get('response_starts_with', None)
-#                 )
-#             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", raw_value)
-#         except Exception as inst:
-#             _LOGGER.warning(f"Exception thrown: {inst}")
-
 async def get_all_option_values(client, projector):
     for key_name in list(EPSON_OPTIONS.keys()) + list(EPSON_COMPLEX_OPTIONS.keys()):
         if key_name != "POWER_READ_ONLY":
