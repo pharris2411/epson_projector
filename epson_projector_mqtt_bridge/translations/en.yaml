@@ -26,3 +26,6 @@ configuration:
   properties_refresh_seconds:
     name: Properties Refresh Time (seconds)
     description: "(Optional | default: 15) How often to refresh the projector's properties. Properties you change are updated immediately."
+  logging_level:
+    name: Logging Level
+    description: "(Optional | default: info) The logging level to use. Valid values are 'debug', 'info', 'warning', 'error', and 'critical'."

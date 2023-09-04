@@ -27,7 +27,7 @@ console_handler.setFormatter(
     logging.Formatter("%(asctime)s - [%(threadName)s] - %(name)s - %(levelname)s - %(message)s")
 )
 _LOGGER.addHandler(console_handler)
-_LOGGER.setLevel(logging.DEBUG)
+_LOGGER.setLevel(str.upper(os.getenv('LOGGING_LEVEL', 'INFO')))
 
 # logging.basicConfig(level=logging.DEBUG)
 

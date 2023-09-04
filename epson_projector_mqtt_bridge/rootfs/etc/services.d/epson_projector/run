@@ -15,6 +15,8 @@ export RECONNECT_SECONDS=$(bashio::config 'reconnect_seconds')
 export POWER_REFRESH_SECONDS=$(bashio::config 'power_refresh_seconds')
 export PROPERTIES_REFRESH_SECONDS=$(bashio::config 'properties_refresh_seconds')
 
+export LOGGING_LEVEL=$(bashio::config 'logging_level')
+
 bashio::log.info "MQTT_HOST=${MQTT_HOST}"
 bashio::log.info "EPSON_HOST=${EPSON_HOST}"
 
