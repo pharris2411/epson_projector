@@ -435,7 +435,7 @@ EPSON_OPTIONS = {
 }
 
 EPSON_COMPLEX_OPTIONS = {
-    'QC': {
+    'QUICK_CORNERS': {
         'human_name': 'Quick Corners (ULx, ULy, URx, URy, LRx, LRy, LLx, LLy)',
         'epson_command': 'QC',
         'response_starts_with': "UL",
@@ -445,6 +445,13 @@ EPSON_COMPLEX_OPTIONS = {
     'SEND_COMMAND': {
         'human_name': 'Send Command',
         'epson_command': '',
+        'response_starts_with': '',
+        'no_periodic_update': True,
+        'use_set_return_value': True
+    },
+    'SEND_REMOTE_KEY': {
+        'human_name': 'Send Remote Key',
+        'epson_command': 'KEY',
         'response_starts_with': '',
         'no_periodic_update': True,
         'use_set_return_value': True

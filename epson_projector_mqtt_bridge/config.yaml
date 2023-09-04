@@ -1,6 +1,6 @@
 name: "Epson Projector to MQTT Bridge"
 description: "Provides a bridge between the Epson Projector TCP service and MQTT"
-version: "0.1.11"
+version: "0.1.12"
 slug: "epson_projector_mqtt_bridge"
 url: "https://github.com/pharris2411/epson_projector"
 init: false
