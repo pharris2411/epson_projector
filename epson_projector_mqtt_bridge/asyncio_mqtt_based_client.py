@@ -133,7 +133,7 @@ async def get_all_config_values(client, projector):
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
-            _LOGGER.warning(f"6-Exception thrown: {inst}")
+            _LOGGER.debug(f"6-Exception thrown: {inst}")
 
     for key_name in EPSON_READOUTS:
         try:
@@ -142,7 +142,7 @@ async def get_all_config_values(client, projector):
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
-            _LOGGER.warning(f"7-Exception thrown: {inst}")
+            _LOGGER.debug(f"7-Exception thrown: {inst}")
 
     await get_all_option_values(client, projector)
 
