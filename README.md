@@ -183,7 +183,7 @@ For a list of possible commands, see the [ESC/VP21 Command User's Guide](https:/
 type: entities
 entities:
   - entity: switch.epson
-  - entity: number.epson_projector_laser_level
+  - entity: number.epson_projector_lamp_level
   - entity: number.epson_projector_hdr_range
   - entity: number.epson_projector_scene_adaptive_gamma
   - entity: button.epson_projector_load_lens_memory_1
@@ -227,15 +227,15 @@ This config is a bit more complex, but makes things a little more touch friendly
                   type: button
                   tap_action:
                     action: call-service
-                    service: script.epson_laser_decrease
+                    service: script.epson_lamp_decrease
                     service_data: { }
                     target: { }
-                  entity: script.epson_laser_decrease
+                  entity: script.epson_lamp_decrease
                   hold_action:
                     action: none
                   show_state: false
                 - type: gauge
-                  entity: number.epson_projector_laser_level
+                  entity: number.epson_projector_lamp_level
                   name: ' '
                   max: 100
                   min: 50
@@ -245,10 +245,10 @@ This config is a bit more complex, but makes things a little more touch friendly
                   type: button
                   tap_action:
                     action: call-service
-                    service: script.epson_laser_increase
+                    service: script.epson_lamp_increase
                     service_data: { }
                     target: { }
-                  entity: script.epson_laser_increase
+                  entity: script.epson_lamp_increase
             - type: horizontal-stack
               cards:
                 - show_name: true
