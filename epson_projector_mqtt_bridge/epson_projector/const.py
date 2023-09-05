@@ -63,7 +63,7 @@ SNO = "SNO"
 BUSY = 2
 
 LENS_MEMORY = "POPLP"
-LASER_LEVEL = "LUMLEVEL"
+LAMP_LEVEL = "LUMLEVEL"
 
 EPSON_CODES = {"PWR": "01"}
 
@@ -270,11 +270,11 @@ EPSON_CONFIG_RANGES = {
         'human_name': 'Horizontal Keystone',
         'humanized_range': range(0,101),
     },
-    'LASER_LEVEL': {
+    'LAMP_LEVEL': {
         'epson_code': 'LUMLEVEL',
         'valid_range': range(0, 251),
         'value_translator': '50-100',
-        'human_name': 'Laser Level (Projector Brightness)',
+        'human_name': 'Lamp Level (Projector Brightness)',
         'humanized_range': range(50, 101),
     },
     'OFFSETR': {
@@ -471,6 +471,7 @@ EPSON_COMPLEX_FUNCTIONS = {
     'RGBCMY': {
         'human_name': 'RGB/CMY (Color, Hue, Chroma, Brightness)',
         'epson_command': 'AXESADJ',
+        'read_only': True,
         'response_starts_with': "R=",
         'include_starts_with_in_value': True,
     },
