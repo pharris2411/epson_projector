@@ -461,6 +461,19 @@ EPSON_COMPLEX_FUNCTIONS = {
         'include_starts_with_in_value': False,
         'numbers_only': True,
     },
+    'REFRESH_ALL_PROPERTIES': {
+        'human_name': 'Refresh All Properties',
+        'entity_type': 'button',
+        'no_periodic_update': True,
+        'use_set_return_value': True,
+        'triggers_properties_refresh': True
+    },
+    'RGBCMY': {
+        'human_name': 'RGB/CMY (Color, Hue, Chroma, Brightness)',
+        'epson_command': 'axesadj',
+        'response_starts_with': "R=",
+        'include_starts_with_in_value': True,
+    },
     'SEND_COMMAND': {
         'human_name': 'Send Command',
         'epson_command': '',
@@ -475,13 +488,6 @@ EPSON_COMPLEX_FUNCTIONS = {
         'no_periodic_update': True,
         'use_set_return_value': True
     },
-    'REFRESH_ALL_PROPERTIES': {
-        'human_name': 'Refresh All Properties',
-        'entity_type': 'button',
-        'no_periodic_update': True,
-        'use_set_return_value': True,
-        'triggers_properties_refresh': True
-    }
 }
 
 DEFAULT_TIMEOUT_TIME = 1
