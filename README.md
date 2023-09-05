@@ -137,9 +137,9 @@ Useful for commands that take a while, like lens memory loads.
 
 #### Refresh All Properties
 
-| Entity Name | Entity ID                           | Read/Write? |
-|-------------|-------------------------------------|-------------|
-| Refresh All | button.epson_refresh_all_properties | Write Only  |
+| Entity Name            | Entity ID                           | Read/Write? |
+|------------------------|-------------------------------------|-------------|
+| Refresh All Properties | button.epson_refresh_all_properties | Write Only  |
 
 Activating this button will cause the addon to immediately start updating all the projector's properties.
 
