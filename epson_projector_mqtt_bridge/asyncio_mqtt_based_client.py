@@ -173,7 +173,9 @@ async def get_single_option_value(client, projector, option_property, periodic_t
                     raw_value = static_value
                 else:
                     raw_value = await projector.get_property(config['epson_command'],
-                                                             resp_beginning=config.get('response_starts_with', None))
+                                                             resp_beginning=config.get('response_starts_with', None),
+                                                             include_beginning=config.get('include_starts_with_in_value', None)
+                                                             )
 
                 break
             except Exception as inst:

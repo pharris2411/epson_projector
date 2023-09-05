@@ -470,7 +470,7 @@ EPSON_COMPLEX_FUNCTIONS = {
     },
     'RGBCMY': {
         'human_name': 'RGB/CMY (Color, Hue, Chroma, Brightness)',
-        'epson_command': 'axesadj',
+        'epson_command': 'AXESADJ',
         'response_starts_with': "R=",
         'include_starts_with_in_value': True,
     },
