@@ -11,7 +11,7 @@ from epson_projector.const import (
     EPSON_KEY_COMMANDS,
     EPSON_CONFIG_RANGES,
     EPSON_OPTIONS,
-    EPSON_COMPLEX_OPTIONS,
+    EPSON_COMPLEX_FUNCTIONS,
     EPSON_READOUTS,
     EPSON_POWER_STATES,
     PWR_OFF_STATE,
@@ -145,20 +145,20 @@ async def get_all_config_values(client, projector):
 
 
 async def get_all_option_values(client, projector):
-    for key_name in list(EPSON_OPTIONS.keys()) + list(EPSON_COMPLEX_OPTIONS.keys()):
+    for key_name in list(EPSON_OPTIONS.keys()) + list(EPSON_COMPLEX_FUNCTIONS.keys()):
         if key_name != "POWER_READ_ONLY":
             await get_single_option_value(client, projector, key_name, periodic_trigger=True)
             await asyncio.sleep(0.015)
 
 
 async def get_single_option_value(client, projector, option_property, periodic_trigger=False, static_value=None):
-    config = EPSON_OPTIONS.get(option_property, False) or EPSON_COMPLEX_OPTIONS[option_property]
+    config = EPSON_OPTIONS.get(option_property, False) or EPSON_COMPLEX_FUNCTIONS[option_property]
     try:
         raw_value = None
         while True:
             try:
                 # support disabling of periodic updates for complex options
-                if (option_property in EPSON_COMPLEX_OPTIONS and
+                if (option_property in EPSON_COMPLEX_FUNCTIONS and
                         periodic_trigger and
                         config.get('no_periodic_update', False)
                 ):
@@ -183,7 +183,7 @@ async def get_single_option_value(client, projector, option_property, periodic_t
                 if raw_value == option[2]:
                     await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{option_property.lower()}", option[0])
                     return option[0]
-        if option_property in EPSON_COMPLEX_OPTIONS and raw_value:
+        if option_property in EPSON_COMPLEX_FUNCTIONS and raw_value:
             if config.get('numbers_only', False):
                 # remove all non-numeric or space characters from the raw_value
                 processed_value = ''.join([x for x in raw_value if x.isdigit() or x == ' '])
@@ -252,30 +252,40 @@ async def process_commands(messages, projector, client):
 
                 # get a dummy value to delay the clearing of the busy flag
                 await get_single_option_value(client, projector, "POWER_READ_ONLY")
-
-                _LOGGER.info(f"Command '{command}' is complete.")
             elif command in EPSON_OPTIONS:
                 _LOGGER.debug(f"{command} is an option.")
                 if EPSON_OPTIONS[command].get('read_only', False):
-                    _LOGGER.debug(f"Command {command} is read-only, ignoring")
+                    _LOGGER.debug(f"Command {command} is read-only and cannot be changed. Refreshing value from projector.")
+                    await get_single_option_value(client, projector, command)
                 else:
                     for option in EPSON_OPTIONS[command]['options']:
-                        if value == option[0]:
+                        if value == option[0].upper():
                             _LOGGER.debug(f"Sending command: {option[1]}")
                             await projector.send_command(option[1])
                             if EPSON_OPTIONS[command].get('epson_command', False):
                                 _LOGGER.debug(f"Getting value for: {option[1]}")
                                 new_value = await get_single_option_value(client, projector, command)
                                 _LOGGER.info(f"Projector reports that the new value for '{command}' is '{new_value}'")
-            elif command in EPSON_COMPLEX_OPTIONS:
+                                break
+                            else:
+                                _LOGGER.debug(f"Command {command} does not have an associated 'epson_command', ignoring.")
+                                break
+                    else:
+                        _LOGGER.error(f"Option {value} is not valid for command {command}")
+            elif command in EPSON_COMPLEX_FUNCTIONS:
                 _LOGGER.debug(f"{command} is a complex option.")
-                if EPSON_COMPLEX_OPTIONS[command].get('read_only', False):
-                    _LOGGER.debug(f"Command {command} is read-only, ignoring")
+                if EPSON_COMPLEX_FUNCTIONS[command].get('read_only', False):
+                    _LOGGER.debug(f"Command {command} is read-only and cannot be changed. Refreshing value from projector.")
+                    await get_single_option_value(client, projector, command)
+                elif EPSON_COMPLEX_FUNCTIONS[command].get('triggers_properties_refresh', False):
+                    _LOGGER.info(f"Command {command} triggers a refresh of all properties. Refreshing values from projector.")
+                    await get_all_config_values(client, projector)
+                    _LOGGER.info(f"Property refresh complete.")
                 else:
-                    epson_command_to_send = f"{EPSON_COMPLEX_OPTIONS[command]['epson_command']} {value}"
+                    epson_command_to_send = f"{EPSON_COMPLEX_FUNCTIONS[command]['epson_command']} {value}"
                     _LOGGER.debug(f"Sending command: {epson_command_to_send}")
                     set_return_value = await projector.send_command(epson_command_to_send)
-                    if EPSON_COMPLEX_OPTIONS[command].get('use_set_return_value', False):
+                    if EPSON_COMPLEX_FUNCTIONS[command].get('use_set_return_value', False):
                         _LOGGER.debug(f"Using get return value for: {epson_command_to_send}")
                         new_value = await get_single_option_value(client, projector, command, static_value=set_return_value)
                     else:
@@ -303,13 +313,13 @@ async def process_commands(messages, projector, client):
                 _LOGGER.error(f"Unknown command {command}")
                 return
 
-            # projector is no longer busy
-            if command != "POWER":
-                await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_busy", "OFF")
-                _LOGGER.debug("Projector is no longer busy.")
-
         except Exception as inst:
             _LOGGER.warning(f"---- 8-Exception thrown: {inst}")
+
+        # projector is no longer busy
+        if command != "POWER":
+            await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_busy", "OFF")
+            _LOGGER.debug("Projector is no longer busy.")
 
 
 async def publish_homeassistant_discovery_config(projector, client):
@@ -386,9 +396,10 @@ async def publish_homeassistant_discovery_config(projector, client):
                                   })
                                   )
 
-    for key_name, config in EPSON_COMPLEX_OPTIONS.items():
+    for key_name, config in EPSON_COMPLEX_FUNCTIONS.items():
+        entity_type = config.get('entity_type', 'text')
         await publish_message(client,
-                              f"homeassistant/text/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
+                              f"homeassistant/{entity_type}/{MQTT_BASE_TOPIC}/{EPSON_NAME}_{key_name.lower()}/config",
                               json.dumps({
                                   "name": f"{EPSON_NAME} - {config['human_name']}",
                                   "unique_id": f"{EPSON_NAME}_{key_name.lower()}",
@@ -407,7 +418,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - Load Lens Memory #{i}",
                                   "unique_id": f"{EPSON_NAME}_lens_memory_{i}",
-                                  "object_id": f"{EPSON_NAME}_{key_name.lower()}",
+                                  "object_id": f"{EPSON_NAME}_lens_memory_{i}",
                                   "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_lens_memory_{i}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",
@@ -420,7 +431,7 @@ async def publish_homeassistant_discovery_config(projector, client):
                               json.dumps({
                                   "name": f"{EPSON_NAME} - Load Image Memory #{i}",
                                   "unique_id": f"{EPSON_NAME}_image_memory_{i}",
-                                  "object_id": f"{EPSON_NAME}_{key_name.lower()}",
+                                  "object_id": f"{EPSON_NAME}_image_memory_{i}",
                                   "command_topic": f"{MQTT_BASE_TOPIC}/command/{EPSON_NAME}_memory_{i}",
                                   "availability_topic": f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_power",
                                   "payload_available": "ON",

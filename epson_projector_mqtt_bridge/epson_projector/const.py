@@ -434,7 +434,7 @@ EPSON_OPTIONS = {
     },
 }
 
-EPSON_COMPLEX_OPTIONS = {
+EPSON_COMPLEX_FUNCTIONS = {
     'QUICK_CORNERS': {
         'human_name': 'Quick Corners (ULx, ULy, URx, URy, LRx, LRy, LLx, LLy)',
         'epson_command': 'QC',
@@ -455,6 +455,12 @@ EPSON_COMPLEX_OPTIONS = {
         'response_starts_with': '',
         'no_periodic_update': True,
         'use_set_return_value': True
+    },
+    'REFRESH_ALL_PROPERTIES': {
+        'human_name': 'Refresh All Properties',
+        'entity_type': 'button',
+        'no_periodic_update': True,
+        'triggers_properties_refresh': True
     }
 }
 

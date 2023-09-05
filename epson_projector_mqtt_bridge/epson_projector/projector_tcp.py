@@ -88,7 +88,6 @@ class ProjectorTcp:
             raise Exception("No response! Will retry.")
         try:
             resp_beginning = f"{command}=" if not resp_beginning else resp_beginning
-            _LOGGER.debug(f"Looking for response beginning {resp_beginning}")
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
                 _LOGGER.debug(f"Response was not expected -- retrying a read")
