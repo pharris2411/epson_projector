@@ -266,7 +266,7 @@ async def process_commands(messages, projector, client):
             elif command in EPSON_OPTIONS:
                 _LOGGER.debug(f"{command} is an option.")
                 if EPSON_OPTIONS[command].get('read_only', False):
-                    _LOGGER.debug(f"Command {command} is read-only and cannot be changed. Refreshing value from projector.")
+                    _LOGGER.info(f"Command {command} is read-only and cannot be changed. Refreshing value from projector.")
                     await get_single_option_value(client, projector, command)
                 else:
                     for option in EPSON_OPTIONS[command]['options']:
@@ -286,7 +286,7 @@ async def process_commands(messages, projector, client):
             elif command in EPSON_COMPLEX_FUNCTIONS:
                 _LOGGER.debug(f"{command} is a complex option.")
                 if EPSON_COMPLEX_FUNCTIONS[command].get('read_only', False):
-                    _LOGGER.debug(f"Command {command} is read-only and cannot be changed. Refreshing value from projector.")
+                    _LOGGER.info(f"Command {command} is read-only and cannot be changed. Refreshing value from projector.")
                     await get_single_option_value(client, projector, command)
                 elif EPSON_COMPLEX_FUNCTIONS[command].get('triggers_properties_refresh', False):
                     _LOGGER.info(f"Command {command} triggers a refresh of all properties. Refreshing values from projector.")
