@@ -4,6 +4,7 @@ from .timeout import get_timeout
 
 from .lock import Lock
 
+import asyncio
 import os
 import logging
 
@@ -110,10 +111,11 @@ class Projector:
 
     async def send_command(self, command):
         """Send command to Epson."""
-        _LOGGER.debug("Sending command to projector %s", command)
+        _LOGGER.debug(f"Sending command: '{str.lstrip(command)}'")
 
-        if self._lock.checkLock():
-            raise Exception("Projector is busy!")
+        while self._lock.checkLock():
+            _LOGGER.debug(f"Projector is busy when trying to send command '{str.lstrip(command)}' -- will retry")
+            await asyncio.sleep(.25)
 
         self._lock.setLock(command)
         return await self._projector.send_command(

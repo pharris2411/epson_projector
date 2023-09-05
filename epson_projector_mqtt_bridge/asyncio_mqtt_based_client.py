@@ -51,6 +51,9 @@ _LOGGER.setLevel(str.upper(os.getenv('LOGGING_LEVEL', 'INFO')))
 # variable to track power state for logging purposes ONLY
 power_state = None
 
+# tracking project busy-ness, including for multiple simultaneous commands
+projector_busy = False
+
 
 async def epson_projector_bridge():
     async with AsyncExitStack() as stack:
@@ -126,7 +129,7 @@ async def get_all_config_values(client, projector):
     for key_name in EPSON_CONFIG_RANGES:
         try:
             value = await projector.read_config_value(key_name)
-            await asyncio.sleep(0.015)
+            await asyncio.sleep(0.01)
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
@@ -135,7 +138,7 @@ async def get_all_config_values(client, projector):
     for key_name in EPSON_READOUTS:
         try:
             value = await projector.read_config_value(key_name)
-            await asyncio.sleep(0.015)
+            await asyncio.sleep(0.01)
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
@@ -148,7 +151,7 @@ async def get_all_option_values(client, projector):
     for key_name in list(EPSON_OPTIONS.keys()) + list(EPSON_COMPLEX_FUNCTIONS.keys()):
         if key_name != "POWER_READ_ONLY":
             await get_single_option_value(client, projector, key_name, periodic_trigger=True)
-            await asyncio.sleep(0.015)
+            await asyncio.sleep(0.01)
 
 
 async def get_single_option_value(client, projector, option_property, periodic_trigger=False, static_value=None):
@@ -226,11 +229,17 @@ async def process_commands(messages, projector, client):
         command = message.topic[len(f"{MQTT_BASE_TOPIC}/command/"):]
         command = str.upper(command.removeprefix(EPSON_NAME + "_"))
         value = str.upper(message.payload.decode())
+        global projector_busy
+
+        while projector_busy:
+            _LOGGER.debug(f"Projector is busy when trying to send command '{command}' -- will retry")
+            await asyncio.sleep(.5)
 
         _LOGGER.info(f"Execute command '{command}' with value of '{value}'")
         try:
             # projector is busy
             if command != "POWER":
+                projector_busy = True
                 await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_busy", "ON")
                 _LOGGER.debug("Projector is busy.")
 
@@ -260,7 +269,7 @@ async def process_commands(messages, projector, client):
                 else:
                     for option in EPSON_OPTIONS[command]['options']:
                         if value == option[0].upper():
-                            _LOGGER.debug(f"Sending command: {option[1]}")
+                            _LOGGER.debug(f"Sending command option: {option[1]}")
                             await projector.send_command(option[1])
                             if EPSON_OPTIONS[command].get('epson_command', False):
                                 _LOGGER.debug(f"Getting value for: {option[1]}")
@@ -283,7 +292,6 @@ async def process_commands(messages, projector, client):
                     _LOGGER.info(f"Property refresh complete.")
                 else:
                     epson_command_to_send = f"{EPSON_COMPLEX_FUNCTIONS[command]['epson_command']} {value}"
-                    _LOGGER.debug(f"Sending command: {epson_command_to_send}")
                     set_return_value = await projector.send_command(epson_command_to_send)
                     if EPSON_COMPLEX_FUNCTIONS[command].get('use_set_return_value', False):
                         _LOGGER.debug(f"Using get return value for: {epson_command_to_send}")
@@ -319,6 +327,7 @@ async def process_commands(messages, projector, client):
         # projector is no longer busy
         if command != "POWER":
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_busy", "OFF")
+            projector_busy = False
             _LOGGER.debug("Projector is no longer busy.")
 
 

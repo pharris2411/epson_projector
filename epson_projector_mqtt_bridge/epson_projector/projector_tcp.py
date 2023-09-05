@@ -88,6 +88,7 @@ class ProjectorTcp:
             raise Exception("No response! Will retry.")
         try:
             resp_beginning = f"{command}=" if not resp_beginning else resp_beginning
+            _LOGGER.debug(f"Looking for response beginning {resp_beginning}")
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
                 _LOGGER.debug(f"Response was not expected -- retrying a read")
@@ -110,7 +111,7 @@ class ProjectorTcp:
         else:
             formatted_command = command
 
-        _LOGGER.debug(f"Prepping command {formatted_command}")
+        _LOGGER.debug(f"Prepping command {str.lstrip(formatted_command)}")
 
         # if command == "PWR OFF":
         #     # need to send it twice...
@@ -126,7 +127,7 @@ class ProjectorTcp:
         if self._isOpen is False:
             await self.async_init()
         if self._isOpen and formatted_command:
-            _LOGGER.debug(f"Sending command {formatted_command}")
+            _LOGGER.debug(f"Sending TCP command: {formatted_command}")
             with async_timeout.timeout(timeout):
                 self._writer.write(formatted_command.encode())
                 return await self.read(bytes_to_read)
