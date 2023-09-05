@@ -126,6 +126,7 @@ async def get_all_config_values(client, projector):
     for key_name in EPSON_CONFIG_RANGES:
         try:
             value = await projector.read_config_value(key_name)
+            await asyncio.sleep(0.015)
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
@@ -134,6 +135,7 @@ async def get_all_config_values(client, projector):
     for key_name in EPSON_READOUTS:
         try:
             value = await projector.read_config_value(key_name)
+            await asyncio.sleep(0.015)
 
             await publish_message(client, f"{MQTT_BASE_TOPIC}/state/{EPSON_NAME}_{key_name.lower()}", int(value))
         except Exception as inst:
@@ -146,6 +148,7 @@ async def get_all_option_values(client, projector):
     for key_name in list(EPSON_OPTIONS.keys()) + list(EPSON_COMPLEX_OPTIONS.keys()):
         if key_name != "POWER_READ_ONLY":
             await get_single_option_value(client, projector, key_name, periodic_trigger=True)
+            await asyncio.sleep(0.015)
 
 
 async def get_single_option_value(client, projector, option_property, periodic_trigger=False, static_value=None):
