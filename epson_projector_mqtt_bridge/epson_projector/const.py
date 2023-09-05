@@ -177,6 +177,13 @@ EPSON_KEY_COMMANDS = {
     "CORRECTMET_QUICK": [('CORRECTMET', '02')],
     "CORRECTMET_POINT": [('CORRECTMET', '03')],
 
+    "GAMMA_PLUS_2": [('GAMMA', '20')],
+    "GAMMA_PLUS_1": [('GAMMA', '21')],
+    "GAMMA_0": [('GAMMA', '22')],
+    "GAMMA_MINUS_1": [('GAMMA', '23')],
+    "GAMMA_MINUS_2": [('GAMMA', '24')],
+    "GAMMA_CUSTOM": [('GAMMA', 'F0')],
+
     "HDR_DYNAMIC_RANGE_AUTO":  [('DYNRANGE', '00')],
     "HDR_DYNAMIC_RANGE_SDR":   [('DYNRANGE', '01')],
     "HDR_DYNAMIC_RANGE_HDR10": [('DYNRANGE', '21')],
@@ -379,6 +386,18 @@ EPSON_OPTIONS = {
             ("Point Correction", "CORRECTMET_POINT", '03'),
         ]
     },
+    'GAMMA': {
+        'human_name': 'Gamma',
+        'epson_command': 'GAMMA',
+        'options': [
+            ("+2", "GAMMA_PLUS_2", '20'),
+            ("+1", "GAMMA_PLUS_1", '21'),
+            ("+0", "GAMMA_0", '22'),
+            ("-1", "GAMMA_MINUS_1", '23'),
+            ("-2", "GAMMA_MINUS_2", '24'),
+            ("Custom", "GAMMA_CUSTOM", 'F0')
+        ]
+    },
     'IMGPROC': {
         'human_name': 'Image Processing',
         'epson_command': 'IMGPROC',
@@ -460,6 +479,7 @@ EPSON_COMPLEX_FUNCTIONS = {
         'human_name': 'Refresh All Properties',
         'entity_type': 'button',
         'no_periodic_update': True,
+        'use_set_return_value': True,
         'triggers_properties_refresh': True
     }
 }
