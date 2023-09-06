@@ -1,4 +1,5 @@
 """TCP connection of Epson projector module."""
+import os
 import logging
 
 import asyncio
@@ -27,7 +28,7 @@ console_handler.setFormatter(
     logging.Formatter("%(asctime)s - [%(threadName)s] - %(name)s - %(levelname)s - %(message)s")
 )
 _LOGGER.addHandler(console_handler)
-_LOGGER.setLevel(logging.DEBUG)
+_LOGGER.setLevel(str.upper(os.getenv('LOGGING_LEVEL', 'INFO')))
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -62,10 +63,10 @@ class ProjectorTcp:
                 response = await self._reader.read(16)
                 if response[0:10].decode() == ESCVPNETNAME and response[14] == 32:
                     self._isOpen = True
-                    _LOGGER.info("Connection open")
+                    _LOGGER.info("SUCCESS! Connected to Projector")
                     return
                 else:
-                    _LOGGER.info("Cannot open connection to Epson")
+                    _LOGGER.info("Cannot open connection to Epson (will retry).")
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout error")
         except ConnectionRefusedError:
@@ -77,35 +78,40 @@ class ProjectorTcp:
         if self._isOpen:
             self._writer.close()
 
-    async def get_property(self, command, timeout, bytes_to_read=256):
+    async def get_property(self, command, timeout, bytes_to_read=256, resp_beginning=None, include_beginning=False):
         """Get property state from device."""
-        _LOGGER.debug(f"Sending request {command}")
         response = await self.send_request(
             timeout=timeout, command=command + GET_CR, bytes_to_read=bytes_to_read
         )
-        _LOGGER.debug(f"Response to command {command} is {response}")
+        _LOGGER.debug(f"Response to command {command}? is {response}")
         if not response:
-            raise Exception("No response!")
+            raise Exception("No response! Will retry.")
         try:
-            resp_beginning = f"{command}="
+            resp_beginning = f"{command}=" if not resp_beginning else resp_beginning
+            _LOGGER.debug(f"Looking for response beginning {resp_beginning}")
             index_of_response = response.find(resp_beginning)
             if index_of_response == -1:
                 _LOGGER.debug(f"Response was not expected -- retrying a read")
                 response = await self.read(bytes_to_read)
                 _LOGGER.debug(f"Retried read resulted in command {command} is {response}")
-                resp_beginning = f"{command}="
                 index_of_response = response.find(resp_beginning)
                 if index_of_response == -1:
-                    raise Exception("No response!")
-            return response[index_of_response:].replace(resp_beginning, "")
+                    raise Exception("No response! Will retry.")
+            if include_beginning:
+                return response
+            else:
+                return response[index_of_response:].replace(resp_beginning, "")
         except KeyError:
             raise Exception("Error fetching!")
 
     async def send_command(self, command, timeout):
         """Send command to Epson."""
-        formatted_command = ' '.join( ' '.join(x) for x in EPSON_KEY_COMMANDS[command])
+        if command in EPSON_KEY_COMMANDS:
+            formatted_command = ' '.join( ' '.join(x) for x in EPSON_KEY_COMMANDS[command])
+        else:
+            formatted_command = command
 
-        _LOGGER.debug(f"Prepping command {formatted_command}")
+        _LOGGER.debug(f"Prepping command {str.lstrip(formatted_command)}")
 
         # if command == "PWR OFF":
         #     # need to send it twice...
@@ -114,15 +120,14 @@ class ProjectorTcp:
         response = await self.send_request(timeout=timeout, command=formatted_command)
         return response
 
-
     async def send_request(self, timeout, command, bytes_to_read=256):
         """Send TCP request to Epson."""
-        formatted_command = command + CR
+        formatted_command = str.lstrip(command) + CR
 
         if self._isOpen is False:
             await self.async_init()
         if self._isOpen and formatted_command:
-            _LOGGER.debug(f"Sending command {formatted_command}")
+            _LOGGER.debug(f"Sending TCP command: {formatted_command}")
             with async_timeout.timeout(timeout):
                 self._writer.write(formatted_command.encode())
                 return await self.read(bytes_to_read)
@@ -132,7 +137,7 @@ class ProjectorTcp:
         _LOGGER.debug(f"Raw response: {response.decode()}")
         response = response.decode().replace(CR_COLON, "")
         if response == ERROR:
-            raise Exception("No response!")
+            raise Exception("No response! Will retry.")
         return response
 
     async def get_serial(self):

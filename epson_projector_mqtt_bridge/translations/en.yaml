@@ -1,0 +1,31 @@
+configuration:
+  mqtt_host:
+    name: MQTT Hostname or IP
+    description: "(Required) The hostname or IP address of the already-installed MQTT broker."
+  epson_host:
+    name: Epson Projector Hostname or IP
+    description: "(Required) The hostname or IP address of the Epson Projector."
+  mqtt_base_topic:
+    name: MQTT Base Topic
+    description: "(Optional | default: 'epson') The base topic to use for all MQTT messages."
+  mqtt_username:
+    name: MQTT Username
+    description: "(Optional | default: None) The username to use when connecting to the MQTT broker."
+  mqtt_password:
+    name: MQTT Password
+    description: "(Optional | default: None) The password to use when connecting to the MQTT broker."
+  epson_name:
+    name: Epson Projector Name
+    description: "(Optional | default: Projector hostname or IP) A friendly name for the Epson Projector."
+  reconnect_seconds:
+    name: Reconnect Time (seconds)
+    description: "(Optional | default: 5) The number of seconds to wait before attempting to reconnect."
+  power_refresh_seconds:
+    name: Power Refresh Time (seconds)
+    description: "(Optional | default: 5) How often to refresh the projector's power state."
+  properties_refresh_seconds:
+    name: Properties Refresh Time (seconds)
+    description: "(Optional | default: 15) How often to refresh the projector's properties. Properties you change are updated immediately."
+  logging_level:
+    name: Logging Level
+    description: "(Optional | default: info) The logging level to use. Valid values are 'debug', 'info', 'warning', 'error', and 'critical'."

@@ -1,0 +1,23 @@
+#!/usr/bin/with-contenv bashio
+
+bashio::log.info "Loading environment variables"
+
+export MQTT_HOST=$(bashio::config 'mqtt_host')
+export MQTT_BASE_TOPIC=$(bashio::config 'mqtt_base_topic')
+export MQTT_USERNAME=$(bashio::config 'mqtt_username')
+export MQTT_PASSWORD=$(bashio::config 'mqtt_password')
+
+export EPSON_HOST=$(bashio::config 'epson_host')
+export EPSON_NAME=$(bashio::config 'epson_name')
+
+export RECONNECT_SECONDS=$(bashio::config 'reconnect_seconds')
+
+export POWER_REFRESH_SECONDS=$(bashio::config 'power_refresh_seconds')
+export PROPERTIES_REFRESH_SECONDS=$(bashio::config 'properties_refresh_seconds')
+
+export LOGGING_LEVEL=$(bashio::config 'logging_level')
+
+bashio::log.info "MQTT_HOST=${MQTT_HOST}"
+bashio::log.info "EPSON_HOST=${EPSON_HOST}"
+
+python3 /usr/src/app/asyncio_mqtt_based_client.py

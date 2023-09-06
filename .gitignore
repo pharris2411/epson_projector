@@ -6,4 +6,6 @@ pyvenv.cfg
 dist
 epson_projector.egg-info
 venv
+__pycache__/
+.idea
 .DS_Store

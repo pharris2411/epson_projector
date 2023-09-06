@@ -1,0 +1,36 @@
+name: "Epson Projector to MQTT Bridge"
+description: "Provides a bridge between the Epson Projector TCP service and MQTT"
+version: "1.0.1"
+slug: "epson_projector_mqtt_bridge"
+url: "https://github.com/pharris2411/epson_projector"
+init: false
+startup: application
+boot: auto
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+options:
+  mqtt_host: localhost
+  mqtt_base_topic: null
+  mqtt_username: null
+  mqtt_password: null
+  epson_host: epson-projector.example.com
+  epson_name: null
+  reconnect_seconds: 5
+  power_refresh_seconds: 5
+  properties_refresh_seconds: 15
+  logging_level: info
+schema:
+  mqtt_host: str
+  mqtt_base_topic: str
+  mqtt_username: str
+  mqtt_password: password
+  epson_host: str
+  epson_name: str
+  reconnect_seconds: int
+  power_refresh_seconds: int
+  properties_refresh_seconds: int
+  logging_level: str
